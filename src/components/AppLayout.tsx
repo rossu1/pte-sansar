@@ -17,7 +17,7 @@ import {
 import { NavLink } from '@/components/NavLink';
 import {
   LayoutDashboard, Mic, PenTool, BookOpen, Headphones,
-  ClipboardList, BarChart3, CreditCard, Settings, LogOut, BookOpenCheck, Globe,
+  ClipboardList, BarChart3, CreditCard, LogOut, BookOpenCheck, Globe, ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -97,13 +97,22 @@ function AppSidebarContent() {
 }
 
 export default function AppLayout({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const showBack = location.pathname !== '/';
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebarContent />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-12 flex items-center border-b bg-card px-2">
+          <header className="h-12 flex items-center border-b bg-card px-2 gap-1">
             <SidebarTrigger className="ml-1" />
+            {showBack && (
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
           </header>
           <main className="flex-1 overflow-auto">
             {children}

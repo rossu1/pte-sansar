@@ -237,8 +237,9 @@ export default function SpeakingPage() {
                     {type === 'Repeat Sentence' ? (
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">{t(i18n.listenCarefully, lang)}</p>
-                        <Button variant="outline" onClick={playTTS} className="gap-2">
-                          <Volume2 className="w-4 h-4" /> {t(i18n.playAudio, lang)}
+                        <Button variant="outline" onClick={playTTS} disabled={ttsLoading} className="gap-2">
+                          {ttsLoading ? <VolumeLoader className="w-4 h-4 animate-spin" /> : <Volume2 className="w-4 h-4" />}
+                          {ttsLoading ? 'Loading...' : t(i18n.playAudio, lang)}
                         </Button>
                         {ttsPlayed && (
                           <p className="text-xs text-muted-foreground italic">Sentence has been played. Now repeat what you heard.</p>

@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Volume2 } from 'lucide-react';
+import { Volume2, Loader2 as VolumeLoader } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import { useRecorder } from '@/components/speaking/SpeakingRecorder';
 import RecordingPanel from '@/components/speaking/RecordingPanel';
@@ -50,6 +50,7 @@ export default function SpeakingPage() {
   const [prepCountdown, setPrepCountdown] = useState(35);
   const [recordCountdown, setRecordCountdown] = useState(40);
   const [ttsPlayed, setTtsPlayed] = useState(false);
+  const [ttsLoading, setTtsLoading] = useState(false);
 
   const recorder = useRecorder();
   const prepTimerRef = useRef<ReturnType<typeof setInterval>>();
@@ -159,13 +160,38 @@ export default function SpeakingPage() {
     setActiveTab(tab);
   };
 
-  const playTTS = () => {
-    if (!question) return;
-    const utterance = new SpeechSynthesisUtterance(question.question_text);
-    utterance.rate = 0.9;
-    utterance.lang = 'en-US';
-    speechSynthesis.speak(utterance);
-    setTtsPlayed(true);
+  const playTTS = async () => {
+    if (!question || ttsLoading) return;
+    setTtsLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ text: question.question_text }),
+        }
+      );
+      if (!response.ok) throw new Error('TTS failed');
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      await audio.play();
+      setTtsPlayed(true);
+    } catch (err) {
+      // Fallback to browser TTS
+      const utterance = new SpeechSynthesisUtterance(question.question_text);
+      utterance.rate = 0.9;
+      utterance.lang = 'en-US';
+      speechSynthesis.speak(utterance);
+      setTtsPlayed(true);
+    } finally {
+      setTtsLoading(false);
+    }
   };
 
   const tabMap: [string, { en: string; np: string }][] = [
@@ -211,8 +237,9 @@ export default function SpeakingPage() {
                     {type === 'Repeat Sentence' ? (
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">{t(i18n.listenCarefully, lang)}</p>
-                        <Button variant="outline" onClick={playTTS} className="gap-2">
-                          <Volume2 className="w-4 h-4" /> {t(i18n.playAudio, lang)}
+                        <Button variant="outline" onClick={playTTS} disabled={ttsLoading} className="gap-2">
+                          {ttsLoading ? <VolumeLoader className="w-4 h-4 animate-spin" /> : <Volume2 className="w-4 h-4" />}
+                          {ttsLoading ? 'Loading...' : t(i18n.playAudio, lang)}
                         </Button>
                         {ttsPlayed && (
                           <p className="text-xs text-muted-foreground italic">Sentence has been played. Now repeat what you heard.</p>

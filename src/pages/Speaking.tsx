@@ -50,6 +50,7 @@ export default function SpeakingPage() {
   const [prepCountdown, setPrepCountdown] = useState(35);
   const [recordCountdown, setRecordCountdown] = useState(40);
   const [ttsPlayed, setTtsPlayed] = useState(false);
+  const [ttsLoading, setTtsLoading] = useState(false);
 
   const recorder = useRecorder();
   const prepTimerRef = useRef<ReturnType<typeof setInterval>>();

@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Volume2 } from 'lucide-react';
+import { Volume2, Loader2 as VolumeLoader } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import { useRecorder } from '@/components/speaking/SpeakingRecorder';
 import RecordingPanel from '@/components/speaking/RecordingPanel';

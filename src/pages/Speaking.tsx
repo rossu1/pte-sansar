@@ -160,13 +160,38 @@ export default function SpeakingPage() {
     setActiveTab(tab);
   };
 
-  const playTTS = () => {
-    if (!question) return;
-    const utterance = new SpeechSynthesisUtterance(question.question_text);
-    utterance.rate = 0.9;
-    utterance.lang = 'en-US';
-    speechSynthesis.speak(utterance);
-    setTtsPlayed(true);
+  const playTTS = async () => {
+    if (!question || ttsLoading) return;
+    setTtsLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ text: question.question_text }),
+        }
+      );
+      if (!response.ok) throw new Error('TTS failed');
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      await audio.play();
+      setTtsPlayed(true);
+    } catch (err) {
+      // Fallback to browser TTS
+      const utterance = new SpeechSynthesisUtterance(question.question_text);
+      utterance.rate = 0.9;
+      utterance.lang = 'en-US';
+      speechSynthesis.speak(utterance);
+      setTtsPlayed(true);
+    } finally {
+      setTtsLoading(false);
+    }
   };
 
   const tabMap: [string, { en: string; np: string }][] = [

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,22 +14,46 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    // For now, since we don't have AssemblyAI configured, we'll use AI to generate
-    // a mock score based on the question. In production, you'd transcribe audio first.
-    const prompt = `You are a PTE Academic speaking examiner. A student was given a "${questionType}" task with this text:
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Download the actual audio file from storage
+    const { data: audioData, error: downloadError } = await supabase.storage
+      .from("speaking-recordings")
+      .download(audioPath);
+
+    if (downloadError || !audioData) {
+      console.error("Download error:", downloadError);
+      throw new Error("Failed to download audio recording");
+    }
+
+    // Convert audio blob to base64
+    const arrayBuffer = await audioData.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    let binary = "";
+    for (let i = 0; i < uint8Array.length; i++) {
+      binary += String.fromCharCode(uint8Array[i]);
+    }
+    const audioBase64 = btoa(binary);
+
+    const prompt = `You are a PTE Academic speaking examiner. The student was given a "${questionType}" task with this text:
 
 "${questionText}"
 
-The student recorded their spoken answer. Since I cannot provide the audio transcription right now, please generate a realistic practice score and feedback as if the student performed at an intermediate level (sometimes good, sometimes needs improvement).
+I am providing the student's actual audio recording. Please listen carefully and evaluate their speaking performance.
 
-Return a JSON object with these exact fields:
-- overall_score: number between 40-75 (PTE scale 0-90)
-- content_score: number between 40-80
-- fluency_score: number between 35-75
-- pronunciation_score: number between 40-70
-- feedback_en: 2-3 sentences of constructive English feedback about speaking performance
-- feedback_np: the same feedback translated to Nepali
-- ideal_answer: a brief description of what an ideal spoken answer would sound like for this text`;
+CRITICAL EVALUATION RULES:
+- If the audio is SILENT (no speech detected), all scores MUST be 0 and feedback must say "No speech detected."
+- If the audio contains speech that does NOT match the given text, content_score must be very low (0-20).
+- If words are mispronounced, pronunciation_score should reflect that accurately.
+- If speech is hesitant or broken, fluency_score should reflect that.
+- Be strict and realistic — this is exam preparation, not encouragement.
+
+Evaluate based on:
+1. Content: Did they read ALL the words correctly? Any omissions or substitutions?
+2. Fluency: Was the speech smooth and natural? Any long pauses, repetitions, or hesitations?
+3. Pronunciation: Were words pronounced clearly and correctly? Stress and intonation?`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -37,26 +62,40 @@ Return a JSON object with these exact fields:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "You are a PTE Academic speaking examiner. Always return valid JSON only, no markdown." },
-          { role: "user", content: prompt },
+          {
+            role: "system",
+            content: "You are a strict PTE Academic speaking examiner. You MUST listen to the audio and score based on what you actually hear. Silent audio = zero scores. Always return valid JSON via the tool call.",
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:audio/webm;base64,${audioBase64}`,
+                },
+              },
+            ],
+          },
         ],
         tools: [{
           type: "function",
           function: {
             name: "return_score",
-            description: "Return the speaking score result",
+            description: "Return the speaking score result based on actual audio analysis",
             parameters: {
               type: "object",
               properties: {
-                overall_score: { type: "number" },
-                content_score: { type: "number" },
-                fluency_score: { type: "number" },
-                pronunciation_score: { type: "number" },
-                feedback_en: { type: "string" },
-                feedback_np: { type: "string" },
-                ideal_answer: { type: "string" },
+                overall_score: { type: "number", description: "Overall score 0-90. 0 if no speech detected." },
+                content_score: { type: "number", description: "Content accuracy 0-90. 0 if no speech." },
+                fluency_score: { type: "number", description: "Fluency score 0-90. 0 if no speech." },
+                pronunciation_score: { type: "number", description: "Pronunciation score 0-90. 0 if no speech." },
+                feedback_en: { type: "string", description: "Detailed feedback in English about what was actually heard" },
+                feedback_np: { type: "string", description: "Same feedback translated to Nepali" },
+                ideal_answer: { type: "string", description: "Description of ideal spoken performance for this text" },
               },
               required: ["overall_score", "content_score", "fluency_score", "pronunciation_score", "feedback_en", "feedback_np", "ideal_answer"],
             },

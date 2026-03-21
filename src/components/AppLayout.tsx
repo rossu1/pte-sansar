@@ -18,7 +18,7 @@ import {
 import { NavLink } from '@/components/NavLink';
 import {
   LayoutDashboard, Mic, PenTool, BookOpen, Headphones,
-  ClipboardList, BarChart3, CreditCard, Settings, LogOut, BookOpenCheck, Globe,
+  ClipboardList, BarChart3, CreditCard, LogOut, BookOpenCheck, Globe, ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

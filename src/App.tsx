@@ -9,6 +9,9 @@ import AuthPage from "@/pages/Auth";
 import Onboarding from "@/pages/Onboarding";
 import Dashboard from "@/pages/Dashboard";
 import SpeakingPage from "@/pages/Speaking";
+import WritingPage from "@/pages/Writing";
+import ReadingPage from "@/pages/Reading";
+import ListeningPage from "@/pages/Listening";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -17,7 +20,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading, profile } = useAuth();
   if (loading) return <div className="flex items-center justify-center min-h-screen"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
   if (!user) return <Navigate to="/auth" replace />;
-  // If profile exists but hasn't completed onboarding
   if (profile && !profile.exam_type) return <Navigate to="/onboarding" replace />;
   return <AppLayout>{children}</AppLayout>;
 }
@@ -59,9 +61,9 @@ const App = () => (
             <Route path="/onboarding" element={<OnboardingRoute />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/practice/speaking" element={<ProtectedRoute><SpeakingPage /></ProtectedRoute>} />
-            <Route path="/practice/writing" element={<ProtectedRoute><PlaceholderPage title="Writing Practice" /></ProtectedRoute>} />
-            <Route path="/practice/reading" element={<ProtectedRoute><PlaceholderPage title="Reading Practice" /></ProtectedRoute>} />
-            <Route path="/practice/listening" element={<ProtectedRoute><PlaceholderPage title="Listening Practice" /></ProtectedRoute>} />
+            <Route path="/practice/writing" element={<ProtectedRoute><WritingPage /></ProtectedRoute>} />
+            <Route path="/practice/reading" element={<ProtectedRoute><ReadingPage /></ProtectedRoute>} />
+            <Route path="/practice/listening" element={<ProtectedRoute><ListeningPage /></ProtectedRoute>} />
             <Route path="/mock-test" element={<ProtectedRoute><PlaceholderPage title="Mock Test" /></ProtectedRoute>} />
             <Route path="/progress" element={<ProtectedRoute><PlaceholderPage title="Progress" /></ProtectedRoute>} />
             <Route path="/pricing" element={<ProtectedRoute><PlaceholderPage title="Pricing" /></ProtectedRoute>} />

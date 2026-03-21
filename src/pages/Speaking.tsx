@@ -26,6 +26,7 @@ interface Question {
   question_text: string;
   question_type: string;
   difficulty: number;
+  image_url: string | null;
 }
 
 const PREP_TIMES: Record<string, number> = {
@@ -56,7 +57,7 @@ export default function SpeakingPage() {
 
   // Load all speaking questions
   useEffect(() => {
-    supabase.from('questions').select('id, question_text, question_type, difficulty')
+    supabase.from('questions').select('id, question_text, question_type, difficulty, image_url')
       .eq('skill', 'speaking')
       .then(({ data }) => {
         if (!data) return;
@@ -220,9 +221,17 @@ export default function SpeakingPage() {
                     ) : type === 'Describe Image' ? (
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground mb-2">{t(i18n.describePrompt, lang)}</p>
-                        <div className="bg-secondary/50 border rounded-lg p-4">
-                          <p className="text-sm leading-relaxed font-medium">{question.question_text}</p>
-                        </div>
+                        {question.image_url ? (
+                          <img
+                            src={question.image_url}
+                            alt="Describe this image"
+                            className="w-full rounded-lg border"
+                          />
+                        ) : (
+                          <div className="bg-secondary/50 border rounded-lg p-4">
+                            <p className="text-sm leading-relaxed font-medium">{question.question_text}</p>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <p className="text-base leading-relaxed">{question.question_text}</p>

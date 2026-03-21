@@ -9,6 +9,8 @@ import { useLang, t } from '@/lib/i18n';
 import { useRecorder } from '@/components/speaking/SpeakingRecorder';
 import RecordingPanel from '@/components/speaking/RecordingPanel';
 import ScoreDisplay from '@/components/speaking/ScoreDisplay';
+import QuestionSkeleton from '@/components/speaking/QuestionSkeleton';
+import { useSmartQuestion } from '@/hooks/useSmartQuestion';
 
 const i18n = {
   speaking: { en: 'Speaking Practice', np: 'बोल्ने अभ्यास' },
@@ -19,6 +21,7 @@ const i18n = {
   listenCarefully: { en: 'Listen to the sentence, then repeat it.', np: 'वाक्य सुन्नुहोस्, त्यसपछि दोहोर्याउनुहोस्।' },
   describePrompt: { en: 'Describe the image/data below in detail.', np: 'तलको तस्वीर/डाटा विस्तृत रूपमा वर्णन गर्नुहोस्।' },
   playAudio: { en: 'Play Sentence', np: 'वाक्य सुन्नुहोस्' },
+  aiGenerated: { en: '✨ AI-Generated Question', np: '✨ AI-उत्पन्न प्रश्न' },
 };
 
 interface Question {
@@ -27,6 +30,7 @@ interface Question {
   question_type: string;
   difficulty: number;
   image_url: string | null;
+  is_generated?: boolean;
 }
 
 const PREP_TIMES: Record<string, number> = {
@@ -51,12 +55,26 @@ export default function SpeakingPage() {
   const [recordCountdown, setRecordCountdown] = useState(40);
   const [ttsPlayed, setTtsPlayed] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
+  const [userPlan, setUserPlan] = useState<string>('free');
+  const [smartQuestion, setSmartQuestion] = useState<Question | null>(null);
 
   const recorder = useRecorder();
+  const smartQ = useSmartQuestion();
   const prepTimerRef = useRef<ReturnType<typeof setInterval>>();
   const recTimerRef = useRef<ReturnType<typeof setInterval>>();
 
-  // Load all speaking questions
+  // Fetch user subscription plan
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('subscriptions').select('plan').eq('user_id', user.id).eq('status', 'active').single()
+      .then(({ data }) => {
+        if (data) setUserPlan(data.plan);
+      });
+  }, [user]);
+
+  const isPremiumUser = userPlan === 'pro' || userPlan === 'intensive';
+
+  // Load static speaking questions (for free users or fallback)
   useEffect(() => {
     supabase.from('questions').select('id, question_text, question_type, difficulty, image_url')
       .eq('skill', 'speaking')
@@ -71,9 +89,29 @@ export default function SpeakingPage() {
       });
   }, []);
 
-  const questions = questionsByType[activeTab] || [];
+  // Generate smart question for premium users
+  const fetchSmartQuestion = useCallback(async (type: string) => {
+    if (!user || !isPremiumUser) return;
+    setSmartQuestion(null);
+    const q = await smartQ.generateQuestion(user.id, 'speaking', type);
+    if (q) {
+      setSmartQuestion(q);
+    }
+  }, [user, isPremiumUser, smartQ.generateQuestion]);
+
+  // Auto-fetch smart question when tab changes for premium users
+  useEffect(() => {
+    if (isPremiumUser && user) {
+      fetchSmartQuestion(activeTab);
+    }
+  }, [activeTab, isPremiumUser, user]);
+
+  // Determine current question
+  const staticQuestions = questionsByType[activeTab] || [];
   const currentIdx = indices[activeTab] || 0;
-  const question = questions[currentIdx];
+  const question = isPremiumUser ? smartQuestion : staticQuestions[currentIdx];
+  const isLoadingQuestion = isPremiumUser && smartQ.loading;
+
   const prepTime = PREP_TIMES[activeTab] || 35;
   const recordTime = RECORD_TIMES[activeTab] || 40;
 
@@ -87,7 +125,7 @@ export default function SpeakingPage() {
 
   // Prep countdown
   useEffect(() => {
-    if (recorder.phase !== 'idle' || !question) return;
+    if (recorder.phase !== 'idle' || !question || isLoadingQuestion) return;
     clearInterval(prepTimerRef.current);
     setPrepCountdown(prepTime);
     setTtsPlayed(false);
@@ -104,7 +142,7 @@ export default function SpeakingPage() {
     }, 1000);
 
     return () => clearInterval(prepTimerRef.current);
-  }, [recorder.phase, currentIdx, activeTab, question?.id]);
+  }, [recorder.phase, question?.id, isLoadingQuestion]);
 
   // Record countdown
   useEffect(() => {
@@ -149,8 +187,12 @@ export default function SpeakingPage() {
   }, [recorder.stopRecording]);
 
   const nextQuestion = () => {
-    setIndices((prev) => ({ ...prev, [activeTab]: ((prev[activeTab] || 0) + 1) % questions.length }));
     recorder.reset();
+    if (isPremiumUser) {
+      fetchSmartQuestion(activeTab);
+    } else {
+      setIndices((prev) => ({ ...prev, [activeTab]: ((prev[activeTab] || 0) + 1) % staticQuestions.length }));
+    }
   };
 
   const handleTabChange = (tab: string) => {
@@ -183,7 +225,6 @@ export default function SpeakingPage() {
       await audio.play();
       setTtsPlayed(true);
     } catch (err) {
-      // Fallback to browser TTS
       const utterance = new SpeechSynthesisUtterance(question.question_text);
       utterance.rate = 0.9;
       utterance.lang = 'en-US';
@@ -217,16 +258,27 @@ export default function SpeakingPage() {
 
         {tabMap.map(([type]) => (
           <TabsContent key={type} value={type} className="mt-4">
-            {(questionsByType[type] || []).length === 0 ? (
+            {activeTab !== type ? null : isLoadingQuestion ? (
+              <QuestionSkeleton />
+            ) : !question && !isPremiumUser && (questionsByType[type] || []).length === 0 ? (
               <Card className="shadow-sm"><CardContent className="p-8 text-center text-muted-foreground">{t(i18n.noQuestions, lang)}</CardContent></Card>
-            ) : activeTab === type && question ? (
+            ) : !question && isPremiumUser && smartQ.error ? (
+              <Card className="shadow-sm">
+                <CardContent className="p-8 text-center space-y-3">
+                  <p className="text-sm text-muted-foreground">{smartQ.error}</p>
+                  <Button variant="outline" onClick={() => fetchSmartQuestion(activeTab)}>Try Again</Button>
+                </CardContent>
+              </Card>
+            ) : question ? (
               <div className="space-y-4 animate-fade-up">
                 {/* Question Card */}
                 <Card className="shadow-sm">
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground uppercase tracking-wide">
-                        Question {currentIdx + 1} of {questions.length}
+                        {isPremiumUser
+                          ? t(i18n.aiGenerated, lang)
+                          : `Question ${currentIdx + 1} of ${staticQuestions.length}`}
                       </span>
                       <span className="text-xs px-2 py-0.5 bg-secondary rounded-full">
                         Difficulty: {question.difficulty}/5

@@ -9,7 +9,7 @@ import { useLang, t } from '@/lib/i18n';
 import { useRecorder } from '@/components/speaking/SpeakingRecorder';
 import RecordingPanel from '@/components/speaking/RecordingPanel';
 import ScoreDisplay from '@/components/speaking/ScoreDisplay';
-import QuestionSkeleton from '@/components/speaking/QuestionSkeleton';
+import QuestionSkeleton from '@/components/shared/QuestionSkeleton';
 import { useSmartQuestion } from '@/hooks/useSmartQuestion';
 
 const i18n = {

@@ -57,7 +57,7 @@ export default function SpeakingPage() {
 
   // Load all speaking questions
   useEffect(() => {
-    supabase.from('questions').select('id, question_text, question_type, difficulty')
+    supabase.from('questions').select('id, question_text, question_type, difficulty, image_url')
       .eq('skill', 'speaking')
       .then(({ data }) => {
         if (!data) return;

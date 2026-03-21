@@ -26,6 +26,7 @@ interface Question {
   question_text: string;
   question_type: string;
   difficulty: number;
+  image_url: string | null;
 }
 
 const PREP_TIMES: Record<string, number> = {

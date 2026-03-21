@@ -1,26 +1,24 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { toast } from 'sonner';
-import { Mic, Square, SkipForward, Loader2, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Volume2 } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
+import { useRecorder } from '@/components/speaking/SpeakingRecorder';
+import RecordingPanel from '@/components/speaking/RecordingPanel';
+import ScoreDisplay from '@/components/speaking/ScoreDisplay';
 
 const i18n = {
   speaking: { en: 'Speaking Practice', np: 'बोल्ने अभ्यास' },
   readAloud: { en: 'Read Aloud', np: 'जोडले पढ्नुहोस्' },
-  prepTime: { en: 'Preparation time', np: 'तयारी समय' },
-  recording: { en: 'Recording...', np: 'रेकर्डिङ...' },
-  scoring: { en: 'AI is scoring your answer...', np: 'AI ले तपाईंको उत्तर जाँच गर्दैछ...' },
-  startRecording: { en: 'Start Recording', np: 'रेकर्डिङ सुरु' },
-  stopRecording: { en: 'Stop', np: 'रोक्नुहोस्' },
-  nextQuestion: { en: 'Next Question', np: 'अर्को प्रश्न' },
-  score: { en: 'Score', np: 'स्कोर' },
-  feedback: { en: 'Feedback', np: 'प्रतिक्रिया' },
-  feedbackNp: { en: 'Feedback (Nepali)', np: 'प्रतिक्रिया (नेपाली)' },
-  noQuestions: { en: 'No questions available. Please check back later.', np: 'कुनै प्रश्न उपलब्ध छैन।' },
+  repeatSentence: { en: 'Repeat Sentence', np: 'वाक्य दोहोर्याउनुहोस्' },
+  describeImage: { en: 'Describe Image', np: 'तस्वीर वर्णन' },
+  noQuestions: { en: 'No questions available.', np: 'कुनै प्रश्न उपलब्ध छैन।' },
+  listenCarefully: { en: 'Listen to the sentence, then repeat it.', np: 'वाक्य सुन्नुहोस्, त्यसपछि दोहोर्याउनुहोस्।' },
+  describePrompt: { en: 'Describe the image/data below in detail.', np: 'तलको तस्वीर/डाटा विस्तृत रूपमा वर्णन गर्नुहोस्।' },
+  playAudio: { en: 'Play Sentence', np: 'वाक्य सुन्नुहोस्' },
 };
 
 interface Question {
@@ -30,165 +28,150 @@ interface Question {
   difficulty: number;
 }
 
-interface ScoreResult {
-  overall_score: number;
-  content_score: number;
-  fluency_score: number;
-  pronunciation_score: number;
-  feedback_en: string;
-  feedback_np: string;
-  ideal_answer: string;
-}
+const PREP_TIMES: Record<string, number> = {
+  'Read Aloud': 35,
+  'Repeat Sentence': 3,
+  'Describe Image': 25,
+};
+
+const RECORD_TIMES: Record<string, number> = {
+  'Read Aloud': 40,
+  'Repeat Sentence': 15,
+  'Describe Image': 40,
+};
 
 export default function SpeakingPage() {
   const { user } = useAuth();
   const { lang } = useLang();
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [phase, setPhase] = useState<'prep' | 'recording' | 'scoring' | 'result'>('prep');
+  const [activeTab, setActiveTab] = useState('Read Aloud');
+  const [questionsByType, setQuestionsByType] = useState<Record<string, Question[]>>({});
+  const [indices, setIndices] = useState<Record<string, number>>({ 'Read Aloud': 0, 'Repeat Sentence': 0, 'Describe Image': 0 });
   const [prepCountdown, setPrepCountdown] = useState(35);
   const [recordCountdown, setRecordCountdown] = useState(40);
-  const [scoreResult, setScoreResult] = useState<ScoreResult | null>(null);
-  const [audioLevels, setAudioLevels] = useState<number[]>(new Array(20).fill(0.1));
+  const [ttsPlayed, setTtsPlayed] = useState(false);
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const animFrameRef = useRef<number>(0);
-  const streamRef = useRef<MediaStream | null>(null);
+  const recorder = useRecorder();
+  const prepTimerRef = useRef<ReturnType<typeof setInterval>>();
+  const recTimerRef = useRef<ReturnType<typeof setInterval>>();
 
-  // Load questions
+  // Load all speaking questions
   useEffect(() => {
     supabase.from('questions').select('id, question_text, question_type, difficulty')
       .eq('skill', 'speaking')
-      .eq('question_type', 'Read Aloud')
       .then(({ data }) => {
-        if (data && data.length > 0) setQuestions(data);
+        if (!data) return;
+        const grouped: Record<string, Question[]> = {};
+        data.forEach((q) => {
+          if (!grouped[q.question_type]) grouped[q.question_type] = [];
+          grouped[q.question_type].push(q);
+        });
+        setQuestionsByType(grouped);
       });
+  }, []);
+
+  const questions = questionsByType[activeTab] || [];
+  const currentIdx = indices[activeTab] || 0;
+  const question = questions[currentIdx];
+  const prepTime = PREP_TIMES[activeTab] || 35;
+  const recordTime = RECORD_TIMES[activeTab] || 40;
+
+  // Clear timers on unmount
+  useEffect(() => {
+    return () => {
+      clearInterval(prepTimerRef.current);
+      clearInterval(recTimerRef.current);
+    };
   }, []);
 
   // Prep countdown
   useEffect(() => {
-    if (phase !== 'prep' || questions.length === 0) return;
-    setPrepCountdown(35);
-    const interval = setInterval(() => {
+    if (recorder.phase !== 'idle' || !question) return;
+    clearInterval(prepTimerRef.current);
+    setPrepCountdown(prepTime);
+    setTtsPlayed(false);
+
+    prepTimerRef.current = setInterval(() => {
       setPrepCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(interval);
-          startRecording();
+          clearInterval(prepTimerRef.current);
+          handleStartRecording();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-    return () => clearInterval(interval);
-  }, [phase, currentIdx, questions.length]);
+
+    return () => clearInterval(prepTimerRef.current);
+  }, [recorder.phase, currentIdx, activeTab, question?.id]);
 
   // Record countdown
   useEffect(() => {
-    if (phase !== 'recording') return;
-    setRecordCountdown(40);
-    const interval = setInterval(() => {
+    if (recorder.phase !== 'recording') return;
+    clearInterval(recTimerRef.current);
+    setRecordCountdown(recordTime);
+
+    recTimerRef.current = setInterval(() => {
       setRecordCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(interval);
-          stopRecording();
+          clearInterval(recTimerRef.current);
+          handleStopRecording();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-    return () => clearInterval(interval);
-  }, [phase]);
 
-  const startRecording = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      const audioCtx = new AudioContext();
-      const source = audioCtx.createMediaStreamSource(stream);
-      const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 64;
-      source.connect(analyser);
-      analyserRef.current = analyser;
+    return () => clearInterval(recTimerRef.current);
+  }, [recorder.phase]);
 
-      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-      audioChunksRef.current = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+  const handleStartRecording = useCallback(async () => {
+    clearInterval(prepTimerRef.current);
+    const rec = await recorder.startRecording();
+    if (rec && question && user) {
+      rec.onstop = () => {
+        recorder.submitRecording({
+          userId: user.id,
+          questionId: question.id,
+          questionText: question.question_text,
+          questionType: question.question_type,
+          onScored: () => {},
+          onError: () => {},
+        });
       };
-      recorder.onstop = () => handleRecordingComplete();
-      recorder.start();
-      mediaRecorderRef.current = recorder;
-      setPhase('recording');
-
-      // Visualizer
-      const updateLevels = () => {
-        if (!analyserRef.current) return;
-        const data = new Uint8Array(analyserRef.current.frequencyBinCount);
-        analyserRef.current.getByteFrequencyData(data);
-        const levels = Array.from(data.slice(0, 20)).map((v) => v / 255);
-        setAudioLevels(levels);
-        animFrameRef.current = requestAnimationFrame(updateLevels);
-      };
-      updateLevels();
-    } catch {
-      toast.error('Microphone access denied');
     }
-  }, [questions, currentIdx, user]);
+  }, [recorder.startRecording, question, user]);
 
-  const stopRecording = useCallback(() => {
-    cancelAnimationFrame(animFrameRef.current);
-    mediaRecorderRef.current?.stop();
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-  }, []);
-
-  const handleRecordingComplete = async () => {
-    setPhase('scoring');
-    const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-    const question = questions[currentIdx];
-
-    try {
-      // Upload to storage
-      const filePath = `${user!.id}/${Date.now()}.webm`;
-      const { error: uploadError } = await supabase.storage.from('speaking-recordings').upload(filePath, blob);
-      if (uploadError) throw uploadError;
-
-      // Call edge function
-      const { data, error } = await supabase.functions.invoke('score-speaking', {
-        body: { audioPath: filePath, questionText: question.question_text, questionType: question.question_type },
-      });
-
-      if (error) throw error;
-
-      const result: ScoreResult = data;
-      setScoreResult(result);
-
-      // Save attempt
-      await supabase.from('user_attempts').insert({
-        user_id: user!.id,
-        question_id: question.id,
-        user_answer: filePath,
-        ai_score: result.overall_score,
-        ai_feedback: result.feedback_en,
-        ai_feedback_nepali: result.feedback_np,
-        time_taken_seconds: 40 - recordCountdown,
-      });
-
-      setPhase('result');
-    } catch (err: any) {
-      toast.error(err.message || 'Scoring failed. Please try again.');
-      setPhase('prep');
-    }
-  };
+  const handleStopRecording = useCallback(() => {
+    clearInterval(recTimerRef.current);
+    recorder.stopRecording();
+  }, [recorder.stopRecording]);
 
   const nextQuestion = () => {
-    setCurrentIdx((prev) => (prev + 1) % questions.length);
-    setScoreResult(null);
-    setPhase('prep');
+    setIndices((prev) => ({ ...prev, [activeTab]: ((prev[activeTab] || 0) + 1) % questions.length }));
+    recorder.reset();
   };
 
-  const question = questions[currentIdx];
+  const handleTabChange = (tab: string) => {
+    clearInterval(prepTimerRef.current);
+    clearInterval(recTimerRef.current);
+    recorder.reset();
+    setActiveTab(tab);
+  };
+
+  const playTTS = () => {
+    if (!question) return;
+    const utterance = new SpeechSynthesisUtterance(question.question_text);
+    utterance.rate = 0.9;
+    utterance.lang = 'en-US';
+    speechSynthesis.speak(utterance);
+    setTtsPlayed(true);
+  };
+
+  const tabMap: [string, { en: string; np: string }][] = [
+    ['Read Aloud', i18n.readAloud],
+    ['Repeat Sentence', i18n.repeatSentence],
+    ['Describe Image', i18n.describeImage],
+  ];
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
@@ -196,137 +179,74 @@ export default function SpeakingPage() {
         🎙️ {t(i18n.speaking, lang)}
       </h1>
 
-      <Tabs defaultValue="read-aloud">
-        <TabsList>
-          <TabsTrigger value="read-aloud">{t(i18n.readAloud, lang)}</TabsTrigger>
-          <TabsTrigger value="repeat-sentence" disabled>Repeat Sentence</TabsTrigger>
-          <TabsTrigger value="describe-image" disabled>Describe Image</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
+        <TabsList className="w-full grid grid-cols-3">
+          {tabMap.map(([type, label]) => (
+            <TabsTrigger key={type} value={type} className="text-xs sm:text-sm">
+              {t(label, lang)}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="read-aloud" className="mt-4">
-          {questions.length === 0 ? (
-            <Card className="shadow-sm"><CardContent className="p-8 text-center text-muted-foreground">{t(i18n.noQuestions, lang)}</CardContent></Card>
-          ) : (
-            <div className="space-y-4 animate-fade-up">
-              {/* Question Card */}
-              <Card className="shadow-sm">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground uppercase tracking-wide">Question {currentIdx + 1} of {questions.length}</span>
-                    <span className="text-xs px-2 py-0.5 bg-secondary rounded-full">Difficulty: {question.difficulty}/5</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-base leading-relaxed">{question.question_text}</p>
-                </CardContent>
-              </Card>
-
-              {/* Phase: Preparation */}
-              {phase === 'prep' && (
-                <Card className="shadow-sm border-primary/20">
-                  <CardContent className="p-6 text-center space-y-4">
-                    <p className="text-sm text-muted-foreground">{t(i18n.prepTime, lang)}</p>
-                    <div className="text-5xl font-bold tabular-nums text-primary">{prepCountdown}s</div>
-                    <Button onClick={startRecording} size="lg" className="gap-2">
-                      <Mic className="w-4 h-4" /> {t(i18n.startRecording, lang)}
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Phase: Recording */}
-              {phase === 'recording' && (
-                <Card className="shadow-sm border-destructive/30">
-                  <CardContent className="p-6 text-center space-y-4">
-                    <p className="text-sm text-destructive font-medium animate-pulse">{t(i18n.recording, lang)}</p>
-                    <div className="text-4xl font-bold tabular-nums text-destructive">{recordCountdown}s</div>
-
-                    {/* Waveform */}
-                    <div className="flex items-end justify-center gap-[3px] h-16">
-                      {audioLevels.map((level, i) => (
-                        <div
-                          key={i}
-                          className="w-1.5 bg-destructive rounded-full transition-all duration-75"
-                          style={{ height: `${Math.max(8, level * 64)}px`, opacity: 0.6 + level * 0.4 }}
-                        />
-                      ))}
-                    </div>
-
-                    <Button variant="destructive" onClick={stopRecording} size="lg" className="gap-2 animate-pulse-record">
-                      <Square className="w-4 h-4" /> {t(i18n.stopRecording, lang)}
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Phase: Scoring */}
-              {phase === 'scoring' && (
+        {tabMap.map(([type]) => (
+          <TabsContent key={type} value={type} className="mt-4">
+            {(questionsByType[type] || []).length === 0 ? (
+              <Card className="shadow-sm"><CardContent className="p-8 text-center text-muted-foreground">{t(i18n.noQuestions, lang)}</CardContent></Card>
+            ) : activeTab === type && question ? (
+              <div className="space-y-4 animate-fade-up">
+                {/* Question Card */}
                 <Card className="shadow-sm">
-                  <CardContent className="p-8 text-center space-y-4">
-                    <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">{t(i18n.scoring, lang)}</p>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground uppercase tracking-wide">
+                        Question {currentIdx + 1} of {questions.length}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 bg-secondary rounded-full">
+                        Difficulty: {question.difficulty}/5
+                      </span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {type === 'Repeat Sentence' ? (
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">{t(i18n.listenCarefully, lang)}</p>
+                        <Button variant="outline" onClick={playTTS} className="gap-2">
+                          <Volume2 className="w-4 h-4" /> {t(i18n.playAudio, lang)}
+                        </Button>
+                        {ttsPlayed && (
+                          <p className="text-xs text-muted-foreground italic">Sentence has been played. Now repeat what you heard.</p>
+                        )}
+                      </div>
+                    ) : type === 'Describe Image' ? (
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground mb-2">{t(i18n.describePrompt, lang)}</p>
+                        <div className="bg-secondary/50 border rounded-lg p-4">
+                          <p className="text-sm leading-relaxed font-medium">{question.question_text}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-base leading-relaxed">{question.question_text}</p>
+                    )}
                   </CardContent>
                 </Card>
-              )}
 
-              {/* Phase: Result */}
-              {phase === 'result' && scoreResult && (
-                <div className="space-y-4 animate-fade-up">
-                  {/* Overall Score */}
-                  <Card className="shadow-sm border-success/30">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-4 mb-4">
-                        <CheckCircle2 className="w-8 h-8 text-success" />
-                        <div>
-                          <div className="text-3xl font-bold tabular-nums">{scoreResult.overall_score}<span className="text-lg text-muted-foreground">/90</span></div>
-                          <div className="text-sm text-muted-foreground">{t(i18n.score, lang)}</div>
-                        </div>
-                      </div>
-
-                      {/* Sub-scores */}
-                      <div className="grid grid-cols-3 gap-3">
-                        {[
-                          { label: 'Content', score: scoreResult.content_score },
-                          { label: 'Fluency', score: scoreResult.fluency_score },
-                          { label: 'Pronunciation', score: scoreResult.pronunciation_score },
-                        ].map((s) => (
-                          <div key={s.label} className="text-center p-2 bg-secondary rounded-lg">
-                            <div className="text-lg font-bold tabular-nums">{s.score}</div>
-                            <div className="text-xs text-muted-foreground">{s.label}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Feedback */}
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4 space-y-3">
-                      <div>
-                        <h4 className="text-sm font-semibold mb-1">{t(i18n.feedback, lang)}</h4>
-                        <p className="text-sm text-muted-foreground">{scoreResult.feedback_en}</p>
-                      </div>
-                      <div className="border-t pt-3">
-                        <h4 className="text-sm font-semibold mb-1 font-nepali">{t(i18n.feedbackNp, lang)}</h4>
-                        <p className="text-sm text-muted-foreground font-nepali">{scoreResult.feedback_np}</p>
-                      </div>
-                      {scoreResult.ideal_answer && (
-                        <div className="border-t pt-3">
-                          <h4 className="text-sm font-semibold mb-1">Ideal Answer</h4>
-                          <p className="text-sm text-muted-foreground italic">{scoreResult.ideal_answer}</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  <Button onClick={nextQuestion} className="w-full gap-2">
-                    <SkipForward className="w-4 h-4" /> {t(i18n.nextQuestion, lang)}
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </TabsContent>
+                {/* Recording / Score */}
+                {recorder.phase !== 'result' ? (
+                  <RecordingPanel
+                    phase={recorder.phase}
+                    prepCountdown={prepCountdown}
+                    recordCountdown={recordCountdown}
+                    audioLevels={recorder.audioLevels}
+                    onStartRecording={handleStartRecording}
+                    onStopRecording={handleStopRecording}
+                  />
+                ) : recorder.scoreResult ? (
+                  <ScoreDisplay result={recorder.scoreResult} onNext={nextQuestion} />
+                ) : null}
+              </div>
+            ) : null}
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );

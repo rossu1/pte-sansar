@@ -2,7 +2,6 @@ import { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useLang } from '@/lib/i18n';
-import { useLocation } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,

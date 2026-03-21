@@ -135,7 +135,7 @@ export default function SpeakingPage() {
     } catch {
       toast.error('Microphone access denied');
     }
-  }, []);
+  }, [questions, currentIdx, user]);
 
   const stopRecording = useCallback(() => {
     cancelAnimationFrame(animFrameRef.current);

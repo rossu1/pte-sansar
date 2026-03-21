@@ -131,6 +131,33 @@ export type Database = {
         }
         Relationships: []
       }
+      seen_topics: {
+        Row: {
+          created_at: string
+          id: string
+          question_type: string
+          skill: string
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_type: string
+          skill: string
+          topic: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_type?: string
+          skill?: string
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           expires_at: string | null

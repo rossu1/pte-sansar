@@ -264,6 +264,56 @@ export default function MockTestPage() {
 
   const handleSubmitQuestion = async () => {
     if (!currentQ || !user) return;
+
+    // Speaking questions use the recorder flow
+    if (currentQ.skill === 'speaking') {
+      if (recorder.phase === 'idle') {
+        toast.error('Please record your answer first');
+        return;
+      }
+      if (recorder.phase === 'recording') {
+        recorder.stopRecording();
+      }
+      setSubmitting(true);
+      try {
+        await recorder.submitRecording({
+          userId: user.id,
+          questionId: currentQ.id,
+          questionText: currentQ.question_text,
+          questionType: currentQ.question_type,
+          onScored: (result) => {
+            const score = result.overall_score;
+            const skill = 'speaking';
+            setScores(prev => ({
+              ...prev,
+              [skill]: [...prev[skill], score],
+            }));
+            if (isLast) {
+              const updatedScores = { ...scores, [skill]: [...scores[skill], score] };
+              finishTestWithScores(updatedScores);
+            } else {
+              setCurrentIdx(prev => prev + 1);
+            }
+            setSubmitting(false);
+          },
+          onError: () => {
+            if (isLast) {
+              finishTestWithScores(scores);
+            } else {
+              setCurrentIdx(prev => prev + 1);
+            }
+            setSubmitting(false);
+          },
+        });
+      } catch {
+        toast.error('Recording submission failed');
+        setSubmitting(false);
+        if (isLast) finishTestWithScores(scores);
+        else setCurrentIdx(prev => prev + 1);
+      }
+      return;
+    }
+
     const userAnswer = getUserAnswer();
     if (!userAnswer.trim()) {
       toast.error('Please provide an answer');
@@ -285,10 +335,6 @@ export default function MockTestPage() {
       } else if (skill === 'reading' || skill === 'listening') {
         body.correct_answer = currentQ.correct_answer || '';
         body.skill = skill;
-      } else if (skill === 'speaking') {
-        // For speaking in mock test, use text-based scoring as fallback
-        fnName = 'score-writing';
-        body.question_type = 'Read Aloud';
       }
 
       const { data, error } = await supabase.functions.invoke(fnName, { body });
@@ -300,7 +346,6 @@ export default function MockTestPage() {
         [skill]: [...prev[skill as keyof SkillScores], score],
       }));
 
-      // Save attempt
       await supabase.from('user_attempts').insert({
         user_id: user.id,
         question_id: currentQ.id,
@@ -311,10 +356,7 @@ export default function MockTestPage() {
       });
 
       if (isLast) {
-        const updatedScores = {
-          ...scores,
-          [skill]: [...scores[skill as keyof SkillScores], score],
-        };
+        const updatedScores = { ...scores, [skill]: [...scores[skill as keyof SkillScores], score] };
         await finishTestWithScores(updatedScores);
       } else {
         setCurrentIdx(prev => prev + 1);

@@ -106,6 +106,7 @@ export default function MockTestPage() {
   // Audio playback for listening questions
   const [audioPlayed, setAudioPlayed] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Speaking recorder
   const recorder = useRecorder();
@@ -219,6 +220,7 @@ export default function MockTestPage() {
     try {
       if (currentQ.audio_url) {
         const audio = new Audio(currentQ.audio_url);
+        currentAudioRef.current = audio;
         await audio.play();
       } else {
         const response = await fetch(
@@ -236,6 +238,7 @@ export default function MockTestPage() {
         if (!response.ok) throw new Error('TTS failed');
         const audioBlob = await response.blob();
         const audio = new Audio(URL.createObjectURL(audioBlob));
+        currentAudioRef.current = audio;
         await audio.play();
       }
       setAudioPlayed(true);
@@ -264,6 +267,13 @@ export default function MockTestPage() {
 
   const handleSubmitQuestion = async () => {
     if (!currentQ || !user) return;
+
+    // Stop any playing audio
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+    speechSynthesis.cancel();
 
     // Speaking questions use the recorder flow
     if (currentQ.skill === 'speaking') {

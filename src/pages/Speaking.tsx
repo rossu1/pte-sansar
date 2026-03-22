@@ -47,9 +47,10 @@ const RECORD_TIMES: Record<string, number> = {
 };
 
 export default function SpeakingPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { lang } = useLang();
   const [activeTab, setActiveTab] = useState('Read Aloud');
+  const isIelts = profile?.exam_type === 'IELTS' || profile?.exam_type === 'Both';
   const [questionsByType, setQuestionsByType] = useState<Record<string, Question[]>>({});
   const [indices, setIndices] = useState<Record<string, number>>({ 'Read Aloud': 0, 'Repeat Sentence': 0, 'Describe Image': 0 });
   const [prepCountdown, setPrepCountdown] = useState(35);

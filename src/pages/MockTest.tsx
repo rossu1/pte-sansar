@@ -657,8 +657,38 @@ export default function MockTestPage() {
             </div>
           )}
 
-          {/* Text answer (writing/speaking/SST) */}
-          {isTextAnswer && (
+          {/* Speaking: audio recorder */}
+          {currentQ.skill === 'speaking' && (
+            <div className="space-y-3">
+              {recorder.phase === 'idle' && (
+                <Button onClick={recorder.startRecording} variant="outline" className="w-full gap-2">
+                  <Mic className="w-4 h-4" /> Start Recording
+                </Button>
+              )}
+              {recorder.phase === 'recording' && (
+                <div className="space-y-3">
+                  <p className="text-sm text-destructive font-medium animate-pulse text-center">Recording…</p>
+                  <div className="flex items-end justify-center gap-[3px] h-12">
+                    {recorder.audioLevels.map((level, i) => (
+                      <div key={i} className="w-1.5 bg-destructive rounded-full transition-all duration-75" style={{ height: `${Math.max(6, level * 48)}px`, opacity: 0.6 + level * 0.4 }} />
+                    ))}
+                  </div>
+                  <Button variant="destructive" onClick={recorder.stopRecording} className="w-full gap-2">
+                    <Square className="w-4 h-4" /> Stop Recording
+                  </Button>
+                </div>
+              )}
+              {recorder.phase === 'scoring' && (
+                <div className="flex items-center justify-center gap-2 py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">Scoring your recording…</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Text answer (writing/SST — not speaking) */}
+          {isTextAnswer && currentQ.skill !== 'speaking' && (
             <Textarea
               value={answer}
               onChange={e => setAnswer(e.target.value)}

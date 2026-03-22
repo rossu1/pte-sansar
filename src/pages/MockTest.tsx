@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   Clock, BookOpen, Mic, PenLine, Headphones, Eye,
   ChevronRight, Trophy, TrendingUp, TrendingDown, Minus,
-  Loader2, ArrowRight, CheckCircle,
+  Loader2, ArrowRight, CheckCircle, Volume2,
 } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import { toast } from 'sonner';

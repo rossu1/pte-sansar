@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import IeltsBanner from '@/components/shared/IeltsBanner';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -38,9 +39,10 @@ interface Question {
 }
 
 export default function ReadingPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { lang } = useLang();
   const [activeTab, setActiveTab] = useState('Multiple Choice');
+  const isIelts = profile?.exam_type === 'IELTS' || profile?.exam_type === 'Both';
   const [questionsByType, setQuestionsByType] = useState<Record<string, Question[]>>({});
   const [indices, setIndices] = useState<Record<string, number>>({});
   const [phase, setPhase] = useState<'answering' | 'scoring' | 'result'>('answering');
@@ -194,6 +196,13 @@ export default function ReadingPage() {
       <h1 className="text-2xl font-bold animate-fade-up" style={{ lineHeight: '1.2' }}>
         📖 {t(i18n.reading, lang)}
       </h1>
+
+      {isIelts && (
+        <IeltsBanner
+          variant="green"
+          message="Great news — our Reading practice is fully compatible with IELTS Academic preparation. Practice away!"
+        />
+      )}
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full grid grid-cols-4">

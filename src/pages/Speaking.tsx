@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import IeltsBanner from '@/components/shared/IeltsBanner';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -46,9 +47,10 @@ const RECORD_TIMES: Record<string, number> = {
 };
 
 export default function SpeakingPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { lang } = useLang();
   const [activeTab, setActiveTab] = useState('Read Aloud');
+  const isIelts = profile?.exam_type === 'IELTS' || profile?.exam_type === 'Both';
   const [questionsByType, setQuestionsByType] = useState<Record<string, Question[]>>({});
   const [indices, setIndices] = useState<Record<string, number>>({ 'Read Aloud': 0, 'Repeat Sentence': 0, 'Describe Image': 0 });
   const [prepCountdown, setPrepCountdown] = useState(35);
@@ -246,6 +248,14 @@ export default function SpeakingPage() {
       <h1 className="text-2xl font-bold animate-fade-up" style={{ lineHeight: '1.2' }}>
         🎙️ {t(i18n.speaking, lang)}
       </h1>
+
+      {isIelts && (
+        <IeltsBanner
+          variant="amber"
+          message="This module is optimised for PTE Academic. IELTS Speaking support is coming soon."
+          dismissible
+        />
+      )}
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full grid grid-cols-3">

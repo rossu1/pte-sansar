@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { BookOpen, Target, Calendar, GraduationCap } from 'lucide-react';
+import { BookOpen, Target, Calendar, GraduationCap, Info } from 'lucide-react';
 import { sanitizeNumeric } from '@/lib/sanitize';
 
 export default function Onboarding() {
@@ -92,6 +92,12 @@ export default function Onboarding() {
                   </button>
                 ))}
               </div>
+              {(examType === 'IELTS' || examType === 'Both') && (
+                <div className="flex items-start gap-2.5 rounded-lg border px-3.5 py-3 text-sm leading-relaxed bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-200 animate-fade-up">
+                  <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>IELTS full support is coming soon! For now, our Reading and Listening practice modules are fully compatible with IELTS preparation. Speaking and Writing modules are optimised for PTE.</span>
+                </div>
+              )}
             </div>
 
             {/* Target Score */}

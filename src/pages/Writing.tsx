@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import IeltsBanner from '@/components/shared/IeltsBanner';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -42,9 +43,10 @@ const TIME_LIMITS: Record<string, number> = {
 };
 
 export default function WritingPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { lang } = useLang();
   const [activeTab, setActiveTab] = useState('Summarise Written Text');
+  const isIelts = profile?.exam_type === 'IELTS' || profile?.exam_type === 'Both';
   const [questionsByType, setQuestionsByType] = useState<Record<string, Question[]>>({});
   const [indices, setIndices] = useState<Record<string, number>>({});
   const [answer, setAnswer] = useState('');
@@ -174,6 +176,14 @@ export default function WritingPage() {
       <h1 className="text-2xl font-bold animate-fade-up" style={{ lineHeight: '1.2' }}>
         ✍️ {t(i18n.writing, lang)}
       </h1>
+
+      {isIelts && (
+        <IeltsBanner
+          variant="amber"
+          message="This module is optimised for PTE Academic. IELTS Writing support is coming soon."
+          dismissible
+        />
+      )}
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full grid grid-cols-2">

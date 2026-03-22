@@ -60,14 +60,14 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
             <Route path="/onboarding" element={<OnboardingRoute />} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/practice/speaking" element={<ProtectedRoute><SpeakingPage /></ProtectedRoute>} />
-            <Route path="/practice/writing" element={<ProtectedRoute><WritingPage /></ProtectedRoute>} />
-            <Route path="/practice/reading" element={<ProtectedRoute><ReadingPage /></ProtectedRoute>} />
-            <Route path="/practice/listening" element={<ProtectedRoute><ListeningPage /></ProtectedRoute>} />
-            <Route path="/mock-test" element={<ProtectedRoute><PlaceholderPage title="Mock Test" /></ProtectedRoute>} />
-            <Route path="/progress" element={<ProtectedRoute><PlaceholderPage title="Progress" /></ProtectedRoute>} />
-            <Route path="/pricing" element={<ProtectedRoute><PlaceholderPage title="Pricing" /></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><ErrorBoundary><Dashboard /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/practice/speaking" element={<ProtectedRoute><ErrorBoundary><SpeakingPage /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/practice/writing" element={<ProtectedRoute><ErrorBoundary><WritingPage /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/practice/reading" element={<ProtectedRoute><ErrorBoundary><ReadingPage /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/practice/listening" element={<ProtectedRoute><ErrorBoundary><ListeningPage /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/mock-test" element={<ProtectedRoute><ErrorBoundary><PlaceholderPage title="Mock Test" /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/progress" element={<ProtectedRoute><ErrorBoundary><PlaceholderPage title="Progress" /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/pricing" element={<ProtectedRoute><ErrorBoundary><PlaceholderPage title="Pricing" /></ErrorBoundary></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

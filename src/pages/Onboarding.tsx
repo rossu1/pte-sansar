@@ -40,7 +40,7 @@ export default function Onboarding() {
     try {
       const { error } = await supabase.from('profiles').update({
         exam_type: examType,
-        target_score: targetScore ? parseInt(targetScore) : null,
+        target_score: targetScore ? parseInt(sanitizeNumeric(targetScore)) : null,
         exam_date: examDate || null,
         level,
       }).eq('user_id', user!.id);

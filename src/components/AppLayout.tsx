@@ -3,25 +3,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useLang } from '@/lib/i18n';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
-} from '@/components/ui/sidebar';
-import { NavLink } from '@/components/NavLink';
-import {
   LayoutDashboard, Mic, PenTool, BookOpen, Headphones,
-  ClipboardList, BarChart3, CreditCard, LogOut, BookOpenCheck, Globe, ArrowLeft,
+  ClipboardList, BarChart3, CreditCard, LogOut, BookOpenCheck, Globe,
+  ArrowLeft, LayoutGrid, Timer, User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-const navItems = [
+const sidebarItems = [
   { title: 'Dashboard', path: '/', icon: LayoutDashboard },
   { title: 'Speaking', path: '/practice/speaking', icon: Mic },
   { title: 'Writing', path: '/practice/writing', icon: PenTool },
@@ -32,93 +22,157 @@ const navItems = [
   { title: 'Pricing', path: '/pricing', icon: CreditCard },
 ];
 
-function AppSidebarContent() {
-  const { state } = useSidebar();
-  const collapsed = state === 'collapsed';
+const bottomTabs = [
+  { title: 'Home', path: '/', icon: LayoutDashboard },
+  { title: 'Practice', path: '/practice/speaking', icon: LayoutGrid, matchPaths: ['/practice/speaking', '/practice/writing', '/practice/reading', '/practice/listening'] },
+  { title: 'Mock', path: '/mock-test', icon: Timer },
+  { title: 'Progress', path: '/progress', icon: BarChart3 },
+  { title: 'Profile', path: '/pricing', icon: User },
+];
+
+function DesktopSidebar() {
   const { signOut } = useAuth();
   const { lang, toggle } = useLang();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = (path: string) =>
+    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0">
-      <SidebarContent className="py-4">
-        {/* Logo */}
-        {!collapsed && (
-          <div className="px-4 mb-4 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
-              <BookOpenCheck className="w-4 h-4 text-sidebar-primary-foreground" />
-            </div>
-            <span className="font-bold text-sidebar-foreground text-lg">PTE Sathi</span>
-          </div>
-        )}
-
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.path}
-                      end={item.path === '/'}
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Bottom actions */}
-        <div className="mt-auto px-3 space-y-1">
-          <button
-            onClick={toggle}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
-          >
-            <Globe className="w-4 h-4" />
-            {!collapsed && <span>{lang === 'en' ? 'नेपाली' : 'English'}</span>}
-          </button>
-          <button
-            onClick={() => { signOut(); navigate('/auth'); }}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            {!collapsed && <span>Sign Out</span>}
-          </button>
+    <div className="hidden md:flex flex-col h-screen w-16 hover:w-56 transition-[width] duration-300 ease-out bg-sidebar border-r border-sidebar-border group/sidebar overflow-hidden shrink-0">
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-4 h-14 shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0">
+          <BookOpenCheck className="w-4 h-4 text-sidebar-primary-foreground" />
         </div>
-      </SidebarContent>
-    </Sidebar>
+        <span className="font-heading font-bold text-sidebar-foreground text-lg whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">
+          PTE Sathi
+        </span>
+      </div>
+
+      {/* Nav items */}
+      <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
+        {sidebarItems.map((item) => {
+          const active = isActive(item.path);
+          return (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className={cn(
+                'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-colors relative',
+                active
+                  ? 'bg-sidebar-accent text-sidebar-primary font-semibold'
+                  : 'text-sidebar-foreground hover:bg-sidebar-accent/50'
+              )}
+            >
+              {active && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
+              )}
+              <item.icon className="w-5 h-5 shrink-0" />
+              <span className="whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">
+                {item.title}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Bottom actions */}
+      <div className="px-2 py-3 space-y-0.5 border-t border-sidebar-border">
+        <button
+          onClick={toggle}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+        >
+          <Globe className="w-5 h-5 shrink-0" />
+          <span className="whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">
+            {lang === 'en' ? 'नेपाली' : 'English'}
+          </span>
+        </button>
+        <button
+          onClick={() => { signOut(); navigate('/auth'); }}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+        >
+          <LogOut className="w-5 h-5 shrink-0" />
+          <span className="whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">
+            Sign Out
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MobileBottomBar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = (tab: typeof bottomTabs[0]) => {
+    if (tab.matchPaths) return tab.matchPaths.some(p => location.pathname.startsWith(p));
+    return tab.path === '/' ? location.pathname === '/' : location.pathname.startsWith(tab.path);
+  };
+
+  return (
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border">
+      <div className="flex items-center justify-around h-14 px-1">
+        {bottomTabs.map((tab) => {
+          const active = isActive(tab);
+          return (
+            <button
+              key={tab.path}
+              onClick={() => navigate(tab.path)}
+              className={cn(
+                'flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-colors relative',
+                active ? 'text-primary' : 'text-muted-foreground'
+              )}
+            >
+              {active && (
+                <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-[3px] rounded-full bg-primary" />
+              )}
+              <tab.icon className="w-5 h-5" />
+              <span className="text-[10px] font-medium">{tab.title}</span>
+            </button>
+          );
+        })}
+      </div>
+      {/* Safe area padding for notched devices */}
+      <div className="h-[env(safe-area-inset-bottom,0px)]" />
+    </nav>
   );
 }
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
   const showBack = location.pathname !== '/';
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebarContent />
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-12 flex items-center border-b bg-card px-2 gap-1">
-            <SidebarTrigger className="ml-1" />
-            {showBack && (
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
-          </header>
-          <main className="flex-1 overflow-auto">
+    <div className="min-h-screen flex w-full">
+      <DesktopSidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile header */}
+        <header className="md:hidden h-12 flex items-center border-b bg-card px-3 gap-2 shrink-0">
+          {showBack && (
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8 btn-press">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
+          <div className="flex items-center gap-2 ml-auto">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+              <BookOpenCheck className="w-3.5 h-3.5 text-primary-foreground" />
+            </div>
+            <span className="font-heading font-bold text-sm">PTE Sathi</span>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto pb-16 md:pb-0">
+          <div className="animate-fade-up">
             {children}
-          </main>
-        </div>
+          </div>
+        </main>
       </div>
-    </SidebarProvider>
+      <MobileBottomBar />
+    </div>
   );
 }

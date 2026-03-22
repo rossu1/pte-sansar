@@ -67,8 +67,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Inter", "Noto Sans Devanagari", "system-ui", "sans-serif"],
-        nepali: ["Noto Sans Devanagari", "Inter", "sans-serif"],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        heading: ["Plus Jakarta Sans", "Inter", "system-ui", "sans-serif"],
+        nepali: ["Mukta", "Inter", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

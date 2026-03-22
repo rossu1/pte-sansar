@@ -114,19 +114,11 @@ Evaluate based on:
         messages: [
           {
             role: "system",
-            content: "You are a strict PTE Academic speaking examiner. You MUST listen to the audio and score based on what you actually hear. Silent audio = zero scores. Always return valid JSON via the tool call.",
+            content: "You are a strict PTE Academic speaking examiner. Score based on the transcription of the student's speech. Always return valid JSON via the tool call.",
           },
           {
             role: "user",
-            content: [
-              { type: "text", text: prompt },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:audio/webm;base64,${audioBase64}`,
-                },
-              },
-            ],
+            content: prompt,
           },
         ],
         tools: [{

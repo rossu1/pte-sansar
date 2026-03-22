@@ -45,9 +45,10 @@ interface Question {
 }
 
 export default function ListeningPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { lang } = useLang();
   const [activeTab, setActiveTab] = useState('Summarise Spoken Text');
+  const isIelts = profile?.exam_type === 'IELTS' || profile?.exam_type === 'Both';
   const [questionsByType, setQuestionsByType] = useState<Record<string, Question[]>>({});
   const [indices, setIndices] = useState<Record<string, number>>({});
   const [phase, setPhase] = useState<'answering' | 'scoring' | 'result'>('answering');

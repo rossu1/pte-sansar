@@ -1,0 +1,590 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
+import {
+  Clock, BookOpen, Mic, PenLine, Headphones, Eye,
+  ChevronRight, Trophy, TrendingUp, TrendingDown, Minus,
+  Loader2, ArrowRight, CheckCircle,
+} from 'lucide-react';
+import { useLang, t } from '@/lib/i18n';
+import { toast } from 'sonner';
+
+/* ─── i18n ─── */
+const i18n = {
+  title: { en: 'Mock Test', np: 'मक टेस्ट' },
+  selectExam: { en: 'Select Exam Type', np: 'परीक्षा प्रकार छान्नुहोस्' },
+  selectMode: { en: 'Select Test Mode', np: 'टेस्ट मोड छान्नुहोस्' },
+  fullTest: { en: 'Full Test', np: 'पूर्ण टेस्ट' },
+  quickTest: { en: 'Quick Test (20 min)', np: 'छिटो टेस्ट (२० मिनेट)' },
+  fullDesc: { en: 'Complete all sections at exam pace', np: 'परीक्षा गतिमा सबै खण्ड पूरा गर्नुहोस्' },
+  quickDesc: { en: 'Timed 20-minute sprint across all skills', np: '२० मिनेटको सबै सीपमा स्प्रिन्ट' },
+  start: { en: 'Start Test', np: 'टेस्ट सुरु गर्नुहोस्' },
+  question: { en: 'Question', np: 'प्रश्न' },
+  of: { en: 'of', np: 'मध्ये' },
+  submit: { en: 'Submit & Next', np: 'पेश गरी अर्को' },
+  submitFinal: { en: 'Finish Test', np: 'टेस्ट सकाउनुहोस्' },
+  scoring: { en: 'Scoring…', np: 'स्कोरिङ…' },
+  results: { en: 'Test Results', np: 'टेस्ट नतिजा' },
+  overall: { en: 'Overall Score', np: 'समग्र स्कोर' },
+  breakdown: { en: 'Skill Breakdown', np: 'सीप विभाजन' },
+  backDash: { en: 'Back to Dashboard', np: 'ड्यासबोर्डमा फर्कनुहोस्' },
+  better: { en: 'You improved since your last mock test! 🎉', np: 'तपाईंले गत मक टेस्टभन्दा सुधार गर्नुभयो! 🎉' },
+  worse: { en: 'Your score dropped — keep practising!', np: 'तपाईंको स्कोर घट्यो — अभ्यास जारी राख्नुहोस्!' },
+  same: { en: 'Same as last time — consistency is key!', np: 'पछिल्लो पटक जस्तै — निरन्तरता कुञ्जी हो!' },
+  first: { en: 'Great job completing your first mock test!', np: 'तपाईंको पहिलो मक टेस्ट पूरा गर्नुभयो!' },
+  timeUp: { en: 'Time is up!', np: 'समय सकियो!' },
+  noQ: { en: 'Not enough questions in the database to start a mock test.', np: 'मक टेस्ट सुरु गर्न पर्याप्त प्रश्नहरू छैनन्।' },
+  loading: { en: 'Preparing your test…', np: 'तपाईंको टेस्ट तयार गर्दै…' },
+  typeAnswer: { en: 'Type your answer…', np: 'आफ्नो उत्तर टाइप गर्नुहोस्…' },
+};
+
+interface Question {
+  id: string;
+  question_text: string;
+  question_type: string;
+  skill: string;
+  difficulty: number;
+  correct_answer: string | null;
+  image_url: string | null;
+  audio_url: string | null;
+}
+
+interface SkillScores {
+  speaking: number[];
+  writing: number[];
+  reading: number[];
+  listening: number[];
+}
+
+const SKILL_ICONS: Record<string, React.ReactNode> = {
+  speaking: <Mic className="w-4 h-4" />,
+  writing: <PenLine className="w-4 h-4" />,
+  reading: <Eye className="w-4 h-4" />,
+  listening: <Headphones className="w-4 h-4" />,
+};
+
+const SKILL_COLORS: Record<string, string> = {
+  speaking: 'text-rose-600',
+  writing: 'text-amber-600',
+  reading: 'text-emerald-600',
+  listening: 'text-sky-600',
+};
+
+const FULL_TIME = 60 * 60; // 60 min
+const QUICK_TIME = 20 * 60; // 20 min
+
+/* ────────────────────────────────────────────────── */
+
+export default function MockTestPage() {
+  const { user } = useAuth();
+  const { lang } = useLang();
+  const navigate = useNavigate();
+
+  // Step state
+  const [step, setStep] = useState<'select' | 'test' | 'scoring' | 'results'>('select');
+  const [examType, setExamType] = useState('PTE');
+  const [mode, setMode] = useState<'full' | 'quick'>('quick');
+
+  // Test state
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [answer, setAnswer] = useState('');
+  const [selectedOption, setSelectedOption] = useState('');
+  const [blanks, setBlanks] = useState<string[]>([]);
+  const [scores, setScores] = useState<SkillScores>({ speaking: [], writing: [], reading: [], listening: [] });
+  const [countdown, setCountdown] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  // Results
+  const [finalScores, setFinalScores] = useState<{ overall: number; speaking: number; writing: number; reading: number; listening: number } | null>(null);
+  const [prevScore, setPrevScore] = useState<number | null>(null);
+
+  const timerRef = useRef<ReturnType<typeof setInterval>>();
+
+  /* ─── Timer ─── */
+  useEffect(() => {
+    if (step !== 'test') return;
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          handleTimeUp();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [step]);
+
+  const handleTimeUp = useCallback(() => {
+    toast.info(t(i18n.timeUp, lang));
+    finishTest();
+  }, []);
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  /* ─── Fetch questions ─── */
+  const startTest = async () => {
+    if (!user) return;
+    setLoading(true);
+
+    const skillCounts: Record<string, number> = { speaking: 3, writing: 2, reading: 5, listening: 3 };
+    const allQuestions: Question[] = [];
+
+    for (const [skill, count] of Object.entries(skillCounts)) {
+      const { data } = await supabase
+        .from('questions')
+        .select('id, question_text, question_type, skill, difficulty, correct_answer, image_url, audio_url')
+        .eq('skill', skill)
+        .eq('exam_type', examType)
+        .limit(50);
+
+      if (data && data.length > 0) {
+        // Randomize and pick `count`
+        const shuffled = [...data].sort(() => Math.random() - 0.5);
+        allQuestions.push(...shuffled.slice(0, count));
+      }
+    }
+
+    if (allQuestions.length < 5) {
+      toast.error(t(i18n.noQ, lang));
+      setLoading(false);
+      return;
+    }
+
+    // Fetch previous mock test for comparison
+    const { data: prevTests } = await supabase
+      .from('mock_tests')
+      .select('total_score')
+      .eq('user_id', user.id)
+      .order('completed_at', { ascending: false })
+      .limit(1);
+
+    if (prevTests && prevTests.length > 0 && prevTests[0].total_score !== null) {
+      setPrevScore(prevTests[0].total_score);
+    }
+
+    setQuestions(allQuestions);
+    setCountdown(mode === 'full' ? FULL_TIME : QUICK_TIME);
+    setCurrentIdx(0);
+    setScores({ speaking: [], writing: [], reading: [], listening: [] });
+    setLoading(false);
+    setStep('test');
+  };
+
+  /* ─── Answer helpers ─── */
+  const currentQ = questions[currentIdx];
+  const isLast = currentIdx === questions.length - 1;
+
+  const parseOptions = (text: string) => {
+    const matches = text.match(/(?:^|\n)[A-D]\)\s*.+/gm);
+    return matches ? matches.map(o => o.trim()) : [];
+  };
+  const parsePassage = (text: string) => text.split(/\n[A-D]\)/)[0].trim();
+  const parseBlanks = (text: string) => (text.match(/___/g) || []).length;
+
+  useEffect(() => {
+    if (!currentQ) return;
+    setAnswer('');
+    setSelectedOption('');
+    setBlanks(new Array(parseBlanks(currentQ.question_text)).fill(''));
+  }, [currentIdx]);
+
+  const getUserAnswer = (): string => {
+    const options = parseOptions(currentQ?.question_text || '');
+    const blankCount = parseBlanks(currentQ?.question_text || '');
+    if (options.length > 0) return selectedOption;
+    if (blankCount > 0) return blanks.join(', ');
+    return answer;
+  };
+
+  /* ─── Submit single question ─── */
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmitQuestion = async () => {
+    if (!currentQ || !user) return;
+    const userAnswer = getUserAnswer();
+    if (!userAnswer.trim()) {
+      toast.error('Please provide an answer');
+      return;
+    }
+    setSubmitting(true);
+
+    try {
+      const skill = currentQ.skill;
+      let fnName = 'score-reading-listening';
+      let body: Record<string, string> = {
+        user_answer: userAnswer,
+        question_text: currentQ.question_text,
+        question_type: currentQ.question_type,
+      };
+
+      if (skill === 'writing' || currentQ.question_type === 'Summarise Spoken Text') {
+        fnName = 'score-writing';
+      } else if (skill === 'reading' || skill === 'listening') {
+        body.correct_answer = currentQ.correct_answer || '';
+        body.skill = skill;
+      } else if (skill === 'speaking') {
+        // For speaking in mock test, use text-based scoring as fallback
+        fnName = 'score-writing';
+        body.question_type = 'Read Aloud';
+      }
+
+      const { data, error } = await supabase.functions.invoke(fnName, { body });
+      if (error) throw error;
+
+      const score = data?.overall_score ?? 0;
+      setScores(prev => ({
+        ...prev,
+        [skill]: [...prev[skill as keyof SkillScores], score],
+      }));
+
+      // Save attempt
+      await supabase.from('user_attempts').insert({
+        user_id: user.id,
+        question_id: currentQ.id,
+        user_answer: userAnswer,
+        ai_score: score,
+        ai_feedback: data?.feedback_en || '',
+        ai_feedback_nepali: data?.feedback_np || '',
+      });
+
+      if (isLast) {
+        const updatedScores = {
+          ...scores,
+          [skill]: [...scores[skill as keyof SkillScores], score],
+        };
+        await finishTestWithScores(updatedScores);
+      } else {
+        setCurrentIdx(prev => prev + 1);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Scoring failed, skipping…');
+      if (isLast) {
+        await finishTestWithScores(scores);
+      } else {
+        setCurrentIdx(prev => prev + 1);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  /* ─── Finish test ─── */
+  const finishTest = () => finishTestWithScores(scores);
+
+  const finishTestWithScores = async (s: SkillScores) => {
+    if (!user) return;
+    clearInterval(timerRef.current);
+    setStep('scoring');
+
+    const avg = (arr: number[]) => arr.length > 0 ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+
+    const speakingAvg = avg(s.speaking);
+    const writingAvg = avg(s.writing);
+    const readingAvg = avg(s.reading);
+    const listeningAvg = avg(s.listening);
+    const allScores = [...s.speaking, ...s.writing, ...s.reading, ...s.listening];
+    const overallAvg = avg(allScores);
+
+    try {
+      await supabase.from('mock_tests').insert({
+        user_id: user.id,
+        exam_type: examType,
+        total_score: overallAvg,
+        speaking_score: speakingAvg,
+        writing_score: writingAvg,
+        reading_score: readingAvg,
+        listening_score: listeningAvg,
+      });
+
+      await supabase.rpc('update_streak_and_xp', { p_user_id: user.id, p_xp_gained: 50 });
+
+      setFinalScores({ overall: overallAvg, speaking: speakingAvg, writing: writingAvg, reading: readingAvg, listening: listeningAvg });
+      setStep('results');
+    } catch {
+      toast.error('Failed to save results');
+      setFinalScores({ overall: overallAvg, speaking: speakingAvg, writing: writingAvg, reading: readingAvg, listening: listeningAvg });
+      setStep('results');
+    }
+  };
+
+  /* ─── Render: Selection ─── */
+  if (step === 'select') {
+    return (
+      <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-6">
+        <h1 className="text-2xl font-bold animate-fade-up" style={{ lineHeight: '1.2' }}>
+          📝 {t(i18n.title, lang)}
+        </h1>
+
+        {/* Exam Type */}
+        <Card className="shadow-sm animate-fade-up" style={{ animationDelay: '60ms' }}>
+          <CardHeader className="pb-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              {t(i18n.selectExam, lang)}
+            </h2>
+          </CardHeader>
+          <CardContent className="flex gap-3">
+            {['PTE', 'IELTS'].map(ex => (
+              <Button
+                key={ex}
+                variant={examType === ex ? 'default' : 'outline'}
+                onClick={() => setExamType(ex)}
+                className="flex-1"
+              >
+                {ex === 'PTE' ? 'PTE Academic' : 'IELTS'}
+              </Button>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Test Mode */}
+        <Card className="shadow-sm animate-fade-up" style={{ animationDelay: '120ms' }}>
+          <CardHeader className="pb-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              {t(i18n.selectMode, lang)}
+            </h2>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {([
+              { id: 'full' as const, label: i18n.fullTest, desc: i18n.fullDesc, time: '60 min' },
+              { id: 'quick' as const, label: i18n.quickTest, desc: i18n.quickDesc, time: '20 min' },
+            ]).map(m => (
+              <button
+                key={m.id}
+                onClick={() => setMode(m.id)}
+                className={`text-left rounded-xl border-2 p-4 transition-all duration-200 active:scale-[0.97] ${
+                  mode === m.id
+                    ? 'border-primary bg-primary/5 shadow-sm'
+                    : 'border-border hover:border-muted-foreground/30'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-semibold text-sm">{t(m.label, lang)}</span>
+                  <Badge variant="secondary" className="text-xs">{m.time}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">{t(m.desc, lang)}</p>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Button onClick={startTest} disabled={loading} className="w-full gap-2 animate-fade-up" style={{ animationDelay: '180ms' }}>
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
+          {loading ? t(i18n.loading, lang) : t(i18n.start, lang)}
+        </Button>
+      </div>
+    );
+  }
+
+  /* ─── Render: Scoring screen ─── */
+  if (step === 'scoring') {
+    return (
+      <div className="p-8 flex flex-col items-center justify-center min-h-[60vh] gap-4 animate-fade-up">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="text-muted-foreground font-medium">{t(i18n.scoring, lang)}</p>
+      </div>
+    );
+  }
+
+  /* ─── Render: Results ─── */
+  if (step === 'results' && finalScores) {
+    const comparison = prevScore === null ? 'first'
+      : finalScores.overall > prevScore ? 'better'
+      : finalScores.overall < prevScore ? 'worse' : 'same';
+
+    const compIcon = comparison === 'better' ? <TrendingUp className="w-5 h-5 text-emerald-600" />
+      : comparison === 'worse' ? <TrendingDown className="w-5 h-5 text-red-500" />
+      : comparison === 'same' ? <Minus className="w-5 h-5 text-amber-500" />
+      : <Trophy className="w-5 h-5 text-primary" />;
+
+    const scoreColor = finalScores.overall >= 60 ? 'text-emerald-600' : finalScores.overall >= 30 ? 'text-amber-600' : 'text-red-600';
+
+    return (
+      <div className="p-4 md:p-8 max-w-xl mx-auto space-y-6">
+        <Card className="shadow-md animate-fade-up">
+          <CardHeader className="text-center pb-2">
+            <Trophy className="w-10 h-10 mx-auto text-primary mb-2" />
+            <h1 className="text-xl font-bold">{t(i18n.results, lang)}</h1>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Overall */}
+            <div className="text-center">
+              <div className={`text-5xl font-extrabold tabular-nums ${scoreColor}`}>
+                {finalScores.overall}
+              </div>
+              <div className="text-sm text-muted-foreground mt-1">{t(i18n.overall, lang)}</div>
+            </div>
+
+            {/* Comparison */}
+            <div className="flex items-center justify-center gap-2 bg-secondary/40 rounded-lg p-3">
+              {compIcon}
+              <span className="text-sm">{t(i18n[comparison], lang)}</span>
+              {prevScore !== null && (
+                <span className="text-xs text-muted-foreground ml-1">(prev: {prevScore})</span>
+              )}
+            </div>
+
+            {/* Breakdown */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t(i18n.breakdown, lang)}
+              </h3>
+              {(['speaking', 'writing', 'reading', 'listening'] as const).map(skill => {
+                const score = finalScores[skill];
+                return (
+                  <div key={skill} className="flex items-center gap-3">
+                    <div className={`${SKILL_COLORS[skill]} shrink-0`}>{SKILL_ICONS[skill]}</div>
+                    <span className="text-sm capitalize w-20">{skill}</span>
+                    <Progress value={score} className="flex-1 h-2.5" />
+                    <span className="text-sm font-semibold tabular-nums w-8 text-right">{score}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <CheckCircle className="w-3.5 h-3.5 text-primary" />
+              +50 XP earned
+            </div>
+
+            <Button onClick={() => navigate('/')} className="w-full gap-2">
+              {t(i18n.backDash, lang)} <ArrowRight className="w-4 h-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  /* ─── Render: Test (question by question) ─── */
+  if (!currentQ) return null;
+
+  const options = parseOptions(currentQ.question_text);
+  const passage = parsePassage(currentQ.question_text);
+  const blankCount = parseBlanks(currentQ.question_text);
+  const progress = ((currentIdx + 1) / questions.length) * 100;
+  const isTextAnswer = options.length === 0 && blankCount === 0;
+
+  return (
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
+      {/* Timer & progress bar */}
+      <div className="flex items-center justify-between animate-fade-up">
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="gap-1">
+            {SKILL_ICONS[currentQ.skill]}
+            <span className="capitalize">{currentQ.skill}</span>
+          </Badge>
+          <span className="text-xs text-muted-foreground">
+            {t(i18n.question, lang)} {currentIdx + 1} {t(i18n.of, lang)} {questions.length}
+          </span>
+        </div>
+        <div className={`flex items-center gap-1.5 font-mono text-sm font-semibold tabular-nums ${countdown < 120 ? 'text-red-600' : ''}`}>
+          <Clock className="w-4 h-4" />
+          {formatTime(countdown)}
+        </div>
+      </div>
+      <Progress value={progress} className="h-1.5" />
+
+      {/* Question card */}
+      <Card className="shadow-sm animate-fade-up" style={{ animationDelay: '60ms' }}>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground uppercase tracking-wide">{currentQ.question_type}</span>
+            <span className="text-xs px-2 py-0.5 bg-secondary rounded-full">Difficulty: {currentQ.difficulty}/5</span>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Passage / text */}
+          {options.length > 0 ? (
+            <p className="text-sm leading-relaxed">{passage}</p>
+          ) : currentQ.image_url ? (
+            <img src={currentQ.image_url} alt="Question" className="w-full rounded-lg border" />
+          ) : (
+            <p className="text-sm leading-relaxed">{currentQ.question_text}</p>
+          )}
+
+          {/* MCQ options */}
+          {options.length > 0 && (
+            <div className="space-y-2">
+              {options.map((opt, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedOption(opt)}
+                  className={`w-full text-left rounded-lg border p-3 text-sm transition-all duration-150 active:scale-[0.98] ${
+                    selectedOption === opt
+                      ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                      : 'hover:bg-secondary/50'
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Fill in blanks */}
+          {blankCount > 0 && (
+            <div className="space-y-2">
+              {blanks.map((val, i) => (
+                <Input
+                  key={i}
+                  placeholder={`Blank ${i + 1}`}
+                  value={val}
+                  onChange={e => {
+                    const next = [...blanks];
+                    next[i] = e.target.value;
+                    setBlanks(next);
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Text answer (writing/speaking/SST) */}
+          {isTextAnswer && (
+            <Textarea
+              value={answer}
+              onChange={e => setAnswer(e.target.value)}
+              placeholder={t(i18n.typeAnswer, lang)}
+              rows={5}
+              className="resize-none"
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Submit button */}
+      <Button
+        onClick={handleSubmitQuestion}
+        disabled={submitting}
+        className="w-full gap-2 animate-fade-up"
+        style={{ animationDelay: '120ms' }}
+      >
+        {submitting ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            {t(i18n.scoring, lang)}
+          </>
+        ) : (
+          <>
+            {isLast ? t(i18n.submitFinal, lang) : t(i18n.submit, lang)}
+            <ChevronRight className="w-4 h-4" />
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}

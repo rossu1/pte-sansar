@@ -203,8 +203,48 @@ export default function MockTestPage() {
     if (!currentQ) return;
     setAnswer('');
     setSelectedOption('');
+    setAudioPlayed(false);
     setBlanks(new Array(parseBlanks(currentQ.question_text)).fill(''));
   }, [currentIdx]);
+
+  // Play TTS for listening questions (single listen)
+  const playAudio = async () => {
+    if (!currentQ || ttsLoading || audioPlayed) return;
+    setTtsLoading(true);
+    try {
+      if (currentQ.audio_url) {
+        const audio = new Audio(currentQ.audio_url);
+        await audio.play();
+      } else {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ text: currentQ.question_text }),
+          }
+        );
+        if (!response.ok) throw new Error('TTS failed');
+        const audioBlob = await response.blob();
+        const audio = new Audio(URL.createObjectURL(audioBlob));
+        await audio.play();
+      }
+      setAudioPlayed(true);
+    } catch {
+      // Fallback to browser TTS
+      const utterance = new SpeechSynthesisUtterance(currentQ.question_text);
+      utterance.rate = 0.9;
+      utterance.lang = 'en-US';
+      speechSynthesis.speak(utterance);
+      setAudioPlayed(true);
+    } finally {
+      setTtsLoading(false);
+    }
+  };
 
   const getUserAnswer = (): string => {
     const options = parseOptions(currentQ?.question_text || '');

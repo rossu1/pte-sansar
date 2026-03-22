@@ -238,6 +238,7 @@ export default function MockTestPage() {
         if (!response.ok) throw new Error('TTS failed');
         const audioBlob = await response.blob();
         const audio = new Audio(URL.createObjectURL(audioBlob));
+        currentAudioRef.current = audio;
         await audio.play();
       }
       setAudioPlayed(true);

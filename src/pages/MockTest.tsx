@@ -12,6 +12,7 @@ import {
   Clock, BookOpen, Mic, PenLine, Headphones, Eye,
   ChevronRight, Trophy, TrendingUp, TrendingDown, Minus,
   Loader2, ArrowRight, CheckCircle, Volume2, Square,
+  RotateCcw, Play,
 } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import { toast } from 'sonner';
@@ -78,8 +79,10 @@ const SKILL_COLORS: Record<string, string> = {
   listening: 'text-muted-foreground',
 };
 
-const FULL_TIME = 60 * 60; // 60 min
-const QUICK_TIME = 20 * 60; // 20 min
+const FULL_TIME = 60 * 60;
+const QUICK_TIME = 20 * 60;
+const SESSION_MAX_AGE_MS = 2 * 60 * 60 * 1000; // 2 hours
+const AUTO_SAVE_INTERVAL = 10_000; // 10 seconds
 
 /* ────────────────────────────────────────────────── */
 
@@ -89,7 +92,7 @@ export default function MockTestPage() {
   const navigate = useNavigate();
 
   // Step state
-  const [step, setStep] = useState<'select' | 'test' | 'scoring' | 'results'>('select');
+  const [step, setStep] = useState<'loading' | 'select' | 'test' | 'scoring' | 'results'>('loading');
   const [examType, setExamType] = useState('PTE');
   const [mode, setMode] = useState<'full' | 'quick'>('quick');
 
@@ -116,6 +119,81 @@ export default function MockTestPage() {
   const [prevScore, setPrevScore] = useState<number | null>(null);
 
   const timerRef = useRef<ReturnType<typeof setInterval>>();
+
+  // Session persistence
+  const sessionIdRef = useRef<string | null>(null);
+  const [pendingSession, setPendingSession] = useState<{
+    id: string;
+    exam_type: string;
+    mode: string;
+    questions: Question[];
+    answers: Record<string, string>;
+    scores: SkillScores;
+    current_question_index: number;
+    seconds_remaining: number;
+    last_saved_at: string;
+  } | null>(null);
+  const answersRef = useRef<Record<string, string>>({});
+
+  /* ─── Check for existing session on mount ─── */
+  useEffect(() => {
+    if (!user) { setStep('select'); return; }
+    const checkSession = async () => {
+      const { data } = await supabase
+        .from('mock_test_sessions' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'in_progress')
+        .order('last_saved_at', { ascending: false })
+        .limit(1);
+
+      const sessions = data as any[];
+      if (sessions && sessions.length > 0) {
+        const session = sessions[0];
+        const lastSaved = new Date(session.last_saved_at).getTime();
+        const age = Date.now() - lastSaved;
+        if (age < SESSION_MAX_AGE_MS) {
+          setPendingSession({
+            id: session.id,
+            exam_type: session.exam_type,
+            mode: session.mode,
+            questions: session.questions as Question[],
+            answers: session.answers as Record<string, string>,
+            scores: session.scores as SkillScores,
+            current_question_index: session.current_question_index,
+            seconds_remaining: session.seconds_remaining,
+            last_saved_at: session.last_saved_at,
+          });
+        }
+      }
+      setStep('select');
+    };
+    checkSession();
+  }, [user]);
+
+  /* ─── Save session helper ─── */
+  const saveSession = useCallback(async () => {
+    if (!user || !sessionIdRef.current || step !== 'test') return;
+    try {
+      await supabase
+        .from('mock_test_sessions' as any)
+        .update({
+          answers: answersRef.current,
+          scores,
+          current_question_index: currentIdx,
+          seconds_remaining: countdown,
+          last_saved_at: new Date().toISOString(),
+        } as any)
+        .eq('id', sessionIdRef.current);
+    } catch { /* silent */ }
+  }, [user, step, scores, currentIdx, countdown]);
+
+  /* ─── Auto-save every 10s ─── */
+  useEffect(() => {
+    if (step !== 'test') return;
+    const interval = setInterval(saveSession, AUTO_SAVE_INTERVAL);
+    return () => clearInterval(interval);
+  }, [step, saveSession]);
 
   /* ─── Timer ─── */
   useEffect(() => {
@@ -144,10 +222,99 @@ export default function MockTestPage() {
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
+  /* ─── Create session in DB ─── */
+  const createSession = async (qs: Question[], examT: string, modeT: string, secs: number) => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('mock_test_sessions' as any)
+      .insert({
+        user_id: user.id,
+        exam_type: examT,
+        mode: modeT,
+        questions: qs,
+        answers: {},
+        scores: { speaking: [], writing: [], reading: [], listening: [] },
+        current_question_index: 0,
+        seconds_remaining: secs,
+        status: 'in_progress',
+      } as any)
+      .select('id')
+      .single();
+    if (data) sessionIdRef.current = (data as any).id;
+    answersRef.current = {};
+  };
+
+  /* ─── Mark session completed ─── */
+  const completeSession = async () => {
+    if (!sessionIdRef.current) return;
+    try {
+      await supabase
+        .from('mock_test_sessions' as any)
+        .update({ status: 'completed', last_saved_at: new Date().toISOString() } as any)
+        .eq('id', sessionIdRef.current);
+    } catch { /* silent */ }
+    sessionIdRef.current = null;
+  };
+
+  /* ─── Resume session ─── */
+  const resumeSession = async () => {
+    if (!pendingSession || !user) return;
+    const elapsed = (Date.now() - new Date(pendingSession.last_saved_at).getTime()) / 1000;
+    const adjustedTime = Math.max(0, Math.round(pendingSession.seconds_remaining - elapsed));
+
+    if (adjustedTime <= 0) {
+      toast.info(t(i18n.timeUp, lang));
+      await deleteExistingSession();
+      return;
+    }
+
+    sessionIdRef.current = pendingSession.id;
+    answersRef.current = pendingSession.answers;
+    setQuestions(pendingSession.questions);
+    setCurrentIdx(pendingSession.current_question_index);
+    setScores(pendingSession.scores);
+    setCountdown(adjustedTime);
+    setExamType(pendingSession.exam_type);
+    setMode(pendingSession.mode as 'full' | 'quick');
+    setPendingSession(null);
+
+    // Fetch previous mock test for comparison
+    const { data: prevTests } = await supabase
+      .from('mock_tests')
+      .select('total_score')
+      .eq('user_id', user.id)
+      .order('completed_at', { ascending: false })
+      .limit(1);
+    if (prevTests && prevTests.length > 0 && prevTests[0].total_score !== null) {
+      setPrevScore(prevTests[0].total_score);
+    }
+
+    setStep('test');
+  };
+
+  /* ─── Delete existing in_progress sessions ─── */
+  const deleteExistingSession = async () => {
+    if (!user) return;
+    await supabase
+      .from('mock_test_sessions' as any)
+      .delete()
+      .eq('user_id', user.id)
+      .eq('status', 'in_progress');
+    setPendingSession(null);
+    sessionIdRef.current = null;
+  };
+
+  const startFresh = async () => {
+    await deleteExistingSession();
+  };
+
   /* ─── Fetch questions ─── */
   const startTest = async () => {
     if (!user) return;
     setLoading(true);
+
+    // Delete any existing in-progress sessions
+    await deleteExistingSession();
 
     const skillCounts: Record<string, number> = { speaking: 3, writing: 2, reading: 5, listening: 3 };
     const allQuestions: Question[] = [];
@@ -161,7 +328,6 @@ export default function MockTestPage() {
         .limit(50);
 
       if (data && data.length > 0) {
-        // Randomize and pick `count`
         const shuffled = [...data].sort(() => Math.random() - 0.5);
         allQuestions.push(...shuffled.slice(0, count));
       }
@@ -185,11 +351,16 @@ export default function MockTestPage() {
       setPrevScore(prevTests[0].total_score);
     }
 
+    const secs = mode === 'full' ? FULL_TIME : QUICK_TIME;
     setQuestions(allQuestions);
-    setCountdown(mode === 'full' ? FULL_TIME : QUICK_TIME);
+    setCountdown(secs);
     setCurrentIdx(0);
     setScores({ speaking: [], writing: [], reading: [], listening: [] });
     setLoading(false);
+
+    // Create persistent session
+    await createSession(allQuestions, examType, mode, secs);
+
     setStep('test');
   };
 
@@ -243,7 +414,6 @@ export default function MockTestPage() {
       }
       setAudioPlayed(true);
     } catch {
-      // Fallback to browser TTS
       const utterance = new SpeechSynthesisUtterance(currentQ.question_text);
       utterance.rate = 0.9;
       utterance.lang = 'en-US';
@@ -298,6 +468,9 @@ export default function MockTestPage() {
               ...prev,
               [skill]: [...prev[skill], score],
             }));
+            // Save answer to ref
+            answersRef.current[currentQ.id] = '[audio recording]';
+            saveSession();
             if (isLast) {
               const updatedScores = { ...scores, [skill]: [...scores[skill], score] };
               finishTestWithScores(updatedScores);
@@ -331,6 +504,9 @@ export default function MockTestPage() {
     }
     setSubmitting(true);
 
+    // Save answer to ref for persistence
+    answersRef.current[currentQ.id] = userAnswer;
+
     try {
       const skill = currentQ.skill;
       let fnName = 'score-reading-listening';
@@ -355,6 +531,9 @@ export default function MockTestPage() {
         ...prev,
         [skill]: [...prev[skill as keyof SkillScores], score],
       }));
+
+      // Save session after scoring
+      saveSession();
 
       await supabase.from('user_attempts').insert({
         user_id: user.id,
@@ -391,6 +570,9 @@ export default function MockTestPage() {
     clearInterval(timerRef.current);
     setStep('scoring');
 
+    // Mark session completed
+    await completeSession();
+
     const avg = (arr: number[]) => arr.length > 0 ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
 
     const speakingAvg = avg(s.speaking);
@@ -422,6 +604,15 @@ export default function MockTestPage() {
     }
   };
 
+  /* ─── Render: Loading ─── */
+  if (step === 'loading') {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[40vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   /* ─── Render: Selection ─── */
   if (step === 'select') {
     return (
@@ -429,6 +620,40 @@ export default function MockTestPage() {
         <h1 className="text-2xl font-bold animate-fade-up" style={{ lineHeight: '1.2' }}>
           📝 {t(i18n.title, lang)}
         </h1>
+
+        {/* Resume card */}
+        {pendingSession && (
+          <Card className="shadow-md border-primary/30 bg-primary/5 animate-fade-up">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-primary/10 p-2 shrink-0 mt-0.5">
+                  <RotateCcw className="w-4 h-4 text-primary" />
+                </div>
+                <div className="space-y-1 flex-1">
+                  <p className="text-sm font-semibold">You have an unfinished mock test</p>
+                  <p className="text-xs text-muted-foreground">
+                    Question {pendingSession.current_question_index + 1} of {pendingSession.questions.length}
+                    {' · '}
+                    Estimated time remaining: {Math.max(1, Math.round(
+                      (pendingSession.seconds_remaining - (Date.now() - new Date(pendingSession.last_saved_at).getTime()) / 1000) / 60
+                    ))} minutes
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {pendingSession.exam_type} · {pendingSession.mode === 'full' ? 'Full Test' : 'Quick Test'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={resumeSession} className="flex-1 gap-2" size="sm">
+                  <Play className="w-3.5 h-3.5" /> Resume
+                </Button>
+                <Button onClick={startFresh} variant="outline" className="flex-1 gap-2" size="sm">
+                  <RotateCcw className="w-3.5 h-3.5" /> Start Fresh
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Exam Type */}
         <Card className="shadow-sm animate-fade-up" style={{ animationDelay: '60ms' }}>
@@ -521,7 +746,6 @@ export default function MockTestPage() {
             <h1 className="text-xl font-bold">{t(i18n.results, lang)}</h1>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Overall */}
             <div className="text-center">
               <div className={`text-5xl font-extrabold tabular-nums ${scoreColor}`}>
                 {finalScores.overall}
@@ -529,7 +753,6 @@ export default function MockTestPage() {
               <div className="text-sm text-muted-foreground mt-1">{t(i18n.overall, lang)}</div>
             </div>
 
-            {/* Comparison */}
             <div className="flex items-center justify-center gap-2 bg-secondary/40 rounded-lg p-3">
               {compIcon}
               <span className="text-sm">{t(i18n[comparison], lang)}</span>
@@ -538,7 +761,6 @@ export default function MockTestPage() {
               )}
             </div>
 
-            {/* Breakdown */}
             <div className="space-y-3">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {t(i18n.breakdown, lang)}
@@ -592,7 +814,7 @@ export default function MockTestPage() {
             {t(i18n.question, lang)} {currentIdx + 1} {t(i18n.of, lang)} {questions.length}
           </span>
         </div>
-        <div className={`flex items-center gap-1.5 font-mono text-sm font-semibold tabular-nums ${countdown < 120 ? 'text-red-600' : ''}`}>
+        <div className={`flex items-center gap-1.5 font-mono text-sm font-semibold tabular-nums ${countdown < 120 ? 'text-destructive' : ''}`}>
           <Clock className="w-4 h-4" />
           {formatTime(countdown)}
         </div>
@@ -608,7 +830,6 @@ export default function MockTestPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Passage / text */}
           {options.length > 0 ? (
             <p className="text-sm leading-relaxed">{passage}</p>
           ) : currentQ.image_url ? (

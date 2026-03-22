@@ -44,6 +44,51 @@ export type Database = {
         }
         Relationships: []
       }
+      mock_test_sessions: {
+        Row: {
+          answers: Json
+          current_question_index: number
+          exam_type: string
+          id: string
+          last_saved_at: string
+          mode: string
+          questions: Json
+          scores: Json
+          seconds_remaining: number
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          current_question_index?: number
+          exam_type: string
+          id?: string
+          last_saved_at?: string
+          mode?: string
+          questions?: Json
+          scores?: Json
+          seconds_remaining?: number
+          started_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          current_question_index?: number
+          exam_type?: string
+          id?: string
+          last_saved_at?: string
+          mode?: string
+          questions?: Json
+          scores?: Json
+          seconds_remaining?: number
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mock_tests: {
         Row: {
           completed_at: string

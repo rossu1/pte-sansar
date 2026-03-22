@@ -180,7 +180,7 @@ export default function Dashboard() {
               <LineChart data={mockScores}>
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <RechartsTooltip />
                 <Line type="monotone" dataKey="score" stroke="hsl(220, 87%, 48%)" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>

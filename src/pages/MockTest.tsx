@@ -102,6 +102,10 @@ export default function MockTestPage() {
   const [countdown, setCountdown] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // Audio playback for listening questions
+  const [audioPlayed, setAudioPlayed] = useState(false);
+  const [ttsLoading, setTtsLoading] = useState(false);
+
   // Results
   const [finalScores, setFinalScores] = useState<{ overall: number; speaking: number; writing: number; reading: number; listening: number } | null>(null);
   const [prevScore, setPrevScore] = useState<number | null>(null);

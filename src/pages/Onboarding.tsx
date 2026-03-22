@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { BookOpen, Target, Calendar, GraduationCap } from 'lucide-react';
+import { sanitizeNumeric } from '@/lib/sanitize';
 
 export default function Onboarding() {
   const { user, refreshProfile } = useAuth();

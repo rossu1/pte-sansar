@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   Clock, BookOpen, Mic, PenLine, Headphones, Eye,
   ChevronRight, Trophy, TrendingUp, TrendingDown, Minus,
-  Loader2, ArrowRight, CheckCircle,
+  Loader2, ArrowRight, CheckCircle, Volume2,
 } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import { toast } from 'sonner';
@@ -101,6 +101,10 @@ export default function MockTestPage() {
   const [scores, setScores] = useState<SkillScores>({ speaking: [], writing: [], reading: [], listening: [] });
   const [countdown, setCountdown] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  // Audio playback for listening questions
+  const [audioPlayed, setAudioPlayed] = useState(false);
+  const [ttsLoading, setTtsLoading] = useState(false);
 
   // Results
   const [finalScores, setFinalScores] = useState<{ overall: number; speaking: number; writing: number; reading: number; listening: number } | null>(null);
@@ -199,8 +203,48 @@ export default function MockTestPage() {
     if (!currentQ) return;
     setAnswer('');
     setSelectedOption('');
+    setAudioPlayed(false);
     setBlanks(new Array(parseBlanks(currentQ.question_text)).fill(''));
   }, [currentIdx]);
+
+  // Play TTS for listening questions (single listen)
+  const playAudio = async () => {
+    if (!currentQ || ttsLoading || audioPlayed) return;
+    setTtsLoading(true);
+    try {
+      if (currentQ.audio_url) {
+        const audio = new Audio(currentQ.audio_url);
+        await audio.play();
+      } else {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ text: currentQ.question_text }),
+          }
+        );
+        if (!response.ok) throw new Error('TTS failed');
+        const audioBlob = await response.blob();
+        const audio = new Audio(URL.createObjectURL(audioBlob));
+        await audio.play();
+      }
+      setAudioPlayed(true);
+    } catch {
+      // Fallback to browser TTS
+      const utterance = new SpeechSynthesisUtterance(currentQ.question_text);
+      utterance.rate = 0.9;
+      utterance.lang = 'en-US';
+      speechSynthesis.speak(utterance);
+      setAudioPlayed(true);
+    } finally {
+      setTtsLoading(false);
+    }
+  };
 
   const getUserAnswer = (): string => {
     const options = parseOptions(currentQ?.question_text || '');
@@ -514,6 +558,19 @@ export default function MockTestPage() {
             <img src={currentQ.image_url} alt="Question" className="w-full rounded-lg border" />
           ) : (
             <p className="text-sm leading-relaxed">{currentQ.question_text}</p>
+          )}
+
+          {/* Audio player for listening questions */}
+          {currentQ.skill === 'listening' && (
+            <Button
+              variant="outline"
+              onClick={playAudio}
+              disabled={ttsLoading || audioPlayed}
+              className="w-full gap-2"
+            >
+              {ttsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Volume2 className="w-4 h-4" />}
+              {audioPlayed ? 'Audio played — single listen only' : ttsLoading ? 'Loading audio…' : 'Play Audio'}
+            </Button>
           )}
 
           {/* MCQ options */}

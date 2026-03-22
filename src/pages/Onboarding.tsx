@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { BookOpen, Target, Calendar, GraduationCap } from 'lucide-react';
+import { sanitizeNumeric } from '@/lib/sanitize';
 
 export default function Onboarding() {
   const { user, refreshProfile } = useAuth();
@@ -39,7 +40,7 @@ export default function Onboarding() {
     try {
       const { error } = await supabase.from('profiles').update({
         exam_type: examType,
-        target_score: targetScore ? parseInt(targetScore) : null,
+        target_score: targetScore ? parseInt(sanitizeNumeric(targetScore)) : null,
         exam_date: examDate || null,
         level,
       }).eq('user_id', user!.id);

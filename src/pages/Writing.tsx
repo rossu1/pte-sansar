@@ -11,6 +11,7 @@ import { useSmartQuestion } from '@/hooks/useSmartQuestion';
 import QuestionSkeleton from '@/components/shared/QuestionSkeleton';
 import GenericScoreDisplay from '@/components/shared/GenericScoreDisplay';
 import { toast } from 'sonner';
+import { sanitizeText } from '@/lib/sanitize';
 
 const i18n = {
   writing: { en: 'Writing Practice', np: 'लेखन अभ्यास' },
@@ -118,9 +119,10 @@ export default function WritingPage() {
     if (!question || !user || !answer.trim()) return;
     clearInterval(timerRef.current);
     setPhase('scoring');
+    const sanitizedAnswer = sanitizeText(answer, 5000);
     try {
       const { data, error } = await supabase.functions.invoke('score-writing', {
-        body: { user_answer: answer, question_text: question.question_text, question_type: question.question_type },
+        body: { user_answer: sanitizedAnswer, question_text: question.question_text, question_type: question.question_type },
       });
       if (error) throw error;
       setScoreResult(data);

@@ -146,10 +146,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { theme, toggle: toggleTheme } = useTheme();
   const showBack = location.pathname !== '/';
 
   return (
-    <div className="min-h-screen flex w-full">
+    <div className="min-h-screen flex w-full bg-background text-foreground">
       <DesktopSidebar />
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile header */}
@@ -160,11 +161,17 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </Button>
           )}
           <div className="flex items-center gap-2 ml-auto">
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
               <BookOpenCheck className="w-3.5 h-3.5 text-primary-foreground" />
             </div>
             <span className="font-heading font-bold text-sm">PTE Sathi</span>
           </div>
+        </header>
+
+        {/* Desktop header with theme toggle */}
+        <header className="hidden md:flex h-12 items-center justify-end border-b bg-card px-4 shrink-0">
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
         </header>
 
         <main className="flex-1 overflow-auto pb-16 md:pb-0">

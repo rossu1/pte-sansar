@@ -53,7 +53,7 @@ function ThemeToggle({ theme, onToggle }: { theme: string; onToggle: () => void 
     </button>
   );
 }
-
+function DesktopSidebar() {
 
   const { signOut } = useAuth();
   const { lang, toggle } = useLang();

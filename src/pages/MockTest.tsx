@@ -11,10 +11,11 @@ import { Progress } from '@/components/ui/progress';
 import {
   Clock, BookOpen, Mic, PenLine, Headphones, Eye,
   ChevronRight, Trophy, TrendingUp, TrendingDown, Minus,
-  Loader2, ArrowRight, CheckCircle, Volume2,
+  Loader2, ArrowRight, CheckCircle, Volume2, Square,
 } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import { toast } from 'sonner';
+import { useRecorder } from '@/components/speaking/SpeakingRecorder';
 
 /* ─── i18n ─── */
 const i18n = {

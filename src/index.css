@@ -1,49 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 220 30% 12%;
+    --background: 50 20% 97%;
+    --foreground: 150 30% 10%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 30% 12%;
+    --card: 50 15% 99%;
+    --card-foreground: 150 30% 10%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 30% 12%;
+    --popover: 50 15% 99%;
+    --popover-foreground: 150 30% 10%;
 
-    --primary: 220 87% 48%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 152 56% 23%;
+    --primary-foreground: 50 20% 97%;
 
-    --secondary: 220 40% 95%;
-    --secondary-foreground: 220 30% 12%;
+    --secondary: 150 15% 93%;
+    --secondary-foreground: 150 30% 10%;
 
-    --muted: 220 20% 94%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 150 10% 92%;
+    --muted-foreground: 150 8% 46%;
 
-    --accent: 25 95% 53%;
+    --accent: 38 80% 52%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 220 87% 48%;
+    --border: 150 10% 89%;
+    --input: 150 10% 89%;
+    --ring: 152 56% 23%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 220 30% 12%;
-    --sidebar-foreground: 220 20% 85%;
-    --sidebar-primary: 25 95% 53%;
+    --sidebar-background: 150 30% 10%;
+    --sidebar-foreground: 150 15% 85%;
+    --sidebar-primary: 38 80% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 30% 18%;
-    --sidebar-accent-foreground: 220 20% 85%;
-    --sidebar-border: 220 20% 20%;
-    --sidebar-ring: 220 87% 48%;
+    --sidebar-accent: 150 25% 16%;
+    --sidebar-accent-foreground: 150 15% 85%;
+    --sidebar-border: 150 20% 18%;
+    --sidebar-ring: 152 56% 23%;
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
@@ -58,10 +56,11 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', 'Noto Sans Devanagari', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tight;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    @apply tracking-tight font-bold;
     text-wrap: balance;
   }
   p {
@@ -70,11 +69,20 @@
 }
 
 @layer utilities {
-  .nepali-text {
-    font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+  .nepali-text, .font-nepali {
+    font-family: 'Mukta', 'Inter', sans-serif;
   }
 }
 
+/* ── Micro-interactions ── */
+@layer components {
+  /* Button press feedback */
+  .btn-press {
+    @apply transition-transform duration-100 active:scale-[0.96];
+  }
+}
+
+/* ── Keyframes ── */
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -96,4 +104,27 @@
 @keyframes bar-bounce {
   0%, 100% { transform: scaleY(0.3); }
   50% { transform: scaleY(1); }
+}
+
+@keyframes gauge-fill {
+  from { stroke-dashoffset: var(--gauge-circumference, 440); }
+  to { stroke-dashoffset: var(--gauge-target, 0); }
+}
+
+@keyframes progress-bar {
+  from { width: 0%; }
+}
+
+@keyframes record-glow {
+  0%, 100% { box-shadow: 0 0 20px 4px hsla(0, 72%, 51%, 0.15); }
+  50% { box-shadow: 0 0 36px 8px hsla(0, 72%, 51%, 0.3); }
+}
+
+@keyframes count-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes arc-deplete {
+  from { stroke-dashoffset: 0; }
 }

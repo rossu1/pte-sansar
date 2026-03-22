@@ -11,10 +11,11 @@ import { Progress } from '@/components/ui/progress';
 import {
   Clock, BookOpen, Mic, PenLine, Headphones, Eye,
   ChevronRight, Trophy, TrendingUp, TrendingDown, Minus,
-  Loader2, ArrowRight, CheckCircle, Volume2,
+  Loader2, ArrowRight, CheckCircle, Volume2, Square,
 } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import { toast } from 'sonner';
+import { useRecorder } from '@/components/speaking/SpeakingRecorder';
 
 /* ─── i18n ─── */
 const i18n = {
@@ -105,6 +106,9 @@ export default function MockTestPage() {
   // Audio playback for listening questions
   const [audioPlayed, setAudioPlayed] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
+
+  // Speaking recorder
+  const recorder = useRecorder();
 
   // Results
   const [finalScores, setFinalScores] = useState<{ overall: number; speaking: number; writing: number; reading: number; listening: number } | null>(null);
@@ -204,6 +208,7 @@ export default function MockTestPage() {
     setAnswer('');
     setSelectedOption('');
     setAudioPlayed(false);
+    recorder.reset();
     setBlanks(new Array(parseBlanks(currentQ.question_text)).fill(''));
   }, [currentIdx]);
 
@@ -259,6 +264,56 @@ export default function MockTestPage() {
 
   const handleSubmitQuestion = async () => {
     if (!currentQ || !user) return;
+
+    // Speaking questions use the recorder flow
+    if (currentQ.skill === 'speaking') {
+      if (recorder.phase === 'idle') {
+        toast.error('Please record your answer first');
+        return;
+      }
+      if (recorder.phase === 'recording') {
+        recorder.stopRecording();
+      }
+      setSubmitting(true);
+      try {
+        await recorder.submitRecording({
+          userId: user.id,
+          questionId: currentQ.id,
+          questionText: currentQ.question_text,
+          questionType: currentQ.question_type,
+          onScored: (result) => {
+            const score = result.overall_score;
+            const skill = 'speaking';
+            setScores(prev => ({
+              ...prev,
+              [skill]: [...prev[skill], score],
+            }));
+            if (isLast) {
+              const updatedScores = { ...scores, [skill]: [...scores[skill], score] };
+              finishTestWithScores(updatedScores);
+            } else {
+              setCurrentIdx(prev => prev + 1);
+            }
+            setSubmitting(false);
+          },
+          onError: () => {
+            if (isLast) {
+              finishTestWithScores(scores);
+            } else {
+              setCurrentIdx(prev => prev + 1);
+            }
+            setSubmitting(false);
+          },
+        });
+      } catch {
+        toast.error('Recording submission failed');
+        setSubmitting(false);
+        if (isLast) finishTestWithScores(scores);
+        else setCurrentIdx(prev => prev + 1);
+      }
+      return;
+    }
+
     const userAnswer = getUserAnswer();
     if (!userAnswer.trim()) {
       toast.error('Please provide an answer');
@@ -280,10 +335,6 @@ export default function MockTestPage() {
       } else if (skill === 'reading' || skill === 'listening') {
         body.correct_answer = currentQ.correct_answer || '';
         body.skill = skill;
-      } else if (skill === 'speaking') {
-        // For speaking in mock test, use text-based scoring as fallback
-        fnName = 'score-writing';
-        body.question_type = 'Read Aloud';
       }
 
       const { data, error } = await supabase.functions.invoke(fnName, { body });
@@ -295,7 +346,6 @@ export default function MockTestPage() {
         [skill]: [...prev[skill as keyof SkillScores], score],
       }));
 
-      // Save attempt
       await supabase.from('user_attempts').insert({
         user_id: user.id,
         question_id: currentQ.id,
@@ -306,10 +356,7 @@ export default function MockTestPage() {
       });
 
       if (isLast) {
-        const updatedScores = {
-          ...scores,
-          [skill]: [...scores[skill as keyof SkillScores], score],
-        };
+        const updatedScores = { ...scores, [skill]: [...scores[skill as keyof SkillScores], score] };
         await finishTestWithScores(updatedScores);
       } else {
         setCurrentIdx(prev => prev + 1);
@@ -610,8 +657,38 @@ export default function MockTestPage() {
             </div>
           )}
 
-          {/* Text answer (writing/speaking/SST) */}
-          {isTextAnswer && (
+          {/* Speaking: audio recorder */}
+          {currentQ.skill === 'speaking' && (
+            <div className="space-y-3">
+              {recorder.phase === 'idle' && (
+                <Button onClick={recorder.startRecording} variant="outline" className="w-full gap-2">
+                  <Mic className="w-4 h-4" /> Start Recording
+                </Button>
+              )}
+              {recorder.phase === 'recording' && (
+                <div className="space-y-3">
+                  <p className="text-sm text-destructive font-medium animate-pulse text-center">Recording…</p>
+                  <div className="flex items-end justify-center gap-[3px] h-12">
+                    {recorder.audioLevels.map((level, i) => (
+                      <div key={i} className="w-1.5 bg-destructive rounded-full transition-all duration-75" style={{ height: `${Math.max(6, level * 48)}px`, opacity: 0.6 + level * 0.4 }} />
+                    ))}
+                  </div>
+                  <Button variant="destructive" onClick={recorder.stopRecording} className="w-full gap-2">
+                    <Square className="w-4 h-4" /> Stop Recording
+                  </Button>
+                </div>
+              )}
+              {recorder.phase === 'scoring' && (
+                <div className="flex items-center justify-center gap-2 py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">Scoring your recording…</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Text answer (writing/SST — not speaking) */}
+          {isTextAnswer && currentQ.skill !== 'speaking' && (
             <Textarea
               value={answer}
               onChange={e => setAnswer(e.target.value)}

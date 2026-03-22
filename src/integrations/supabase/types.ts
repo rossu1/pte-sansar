@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_queue: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sent_at: string | null
+          status: string
+          subject: string
+          to_email: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          to_email: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          to_email?: string
+        }
+        Relationships: []
+      }
       mock_tests: {
         Row: {
           completed_at: string
@@ -59,6 +89,7 @@ export type Database = {
           id: string
           last_active_date: string | null
           level: string | null
+          role: string
           streak_count: number
           target_score: number | null
           user_id: string
@@ -72,6 +103,7 @@ export type Database = {
           id?: string
           last_active_date?: string | null
           level?: string | null
+          role?: string
           streak_count?: number
           target_score?: number | null
           user_id: string
@@ -85,6 +117,7 @@ export type Database = {
           id?: string
           last_active_date?: string | null
           level?: string | null
+          role?: string
           streak_count?: number
           target_score?: number | null
           user_id?: string
@@ -234,7 +267,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_streak_and_xp: {
+        Args: { p_user_id: string; p_xp_gained?: number }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

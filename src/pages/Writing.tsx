@@ -43,9 +43,10 @@ const TIME_LIMITS: Record<string, number> = {
 };
 
 export default function WritingPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { lang } = useLang();
   const [activeTab, setActiveTab] = useState('Summarise Written Text');
+  const isIelts = profile?.exam_type === 'IELTS' || profile?.exam_type === 'Both';
   const [questionsByType, setQuestionsByType] = useState<Record<string, Question[]>>({});
   const [indices, setIndices] = useState<Record<string, number>>({});
   const [answer, setAnswer] = useState('');

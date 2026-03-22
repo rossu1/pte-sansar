@@ -208,6 +208,7 @@ export default function MockTestPage() {
     setAnswer('');
     setSelectedOption('');
     setAudioPlayed(false);
+    recorder.reset();
     setBlanks(new Array(parseBlanks(currentQ.question_text)).fill(''));
   }, [currentIdx]);
 

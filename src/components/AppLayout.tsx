@@ -31,7 +31,30 @@ const bottomTabs = [
   { title: 'Profile', path: '/pricing', icon: User },
 ];
 
-function DesktopSidebar() {
+function ThemeToggle({ theme, onToggle }: { theme: string; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      className="relative flex items-center w-14 h-7 rounded-full bg-muted p-0.5 transition-colors btn-press"
+      aria-label="Toggle theme"
+    >
+      <span
+        className={cn(
+          'absolute w-6 h-6 rounded-full bg-card shadow-md flex items-center justify-center transition-transform duration-200',
+          theme === 'dark' ? 'translate-x-7' : 'translate-x-0'
+        )}
+      >
+        {theme === 'light' ? (
+          <Sun className="w-3.5 h-3.5 text-warning" />
+        ) : (
+          <Moon className="w-3.5 h-3.5 text-primary" />
+        )}
+      </span>
+    </button>
+  );
+}
+
+
   const { signOut } = useAuth();
   const { lang, toggle } = useLang();
   const navigate = useNavigate();

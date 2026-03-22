@@ -13,6 +13,7 @@ import SpeakingPage from "@/pages/Speaking";
 import WritingPage from "@/pages/Writing";
 import ReadingPage from "@/pages/Reading";
 import ListeningPage from "@/pages/Listening";
+import PricingPage from "@/pages/Pricing";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,7 +68,7 @@ const App = () => (
             <Route path="/practice/listening" element={<ProtectedRoute><ErrorBoundary><ListeningPage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/mock-test" element={<ProtectedRoute><ErrorBoundary><PlaceholderPage title="Mock Test" /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/progress" element={<ProtectedRoute><ErrorBoundary><PlaceholderPage title="Progress" /></ErrorBoundary></ProtectedRoute>} />
-            <Route path="/pricing" element={<ProtectedRoute><ErrorBoundary><PlaceholderPage title="Pricing" /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/pricing" element={<ProtectedRoute><ErrorBoundary><PricingPage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

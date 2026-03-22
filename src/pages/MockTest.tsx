@@ -71,10 +71,10 @@ const SKILL_ICONS: Record<string, React.ReactNode> = {
 };
 
 const SKILL_COLORS: Record<string, string> = {
-  speaking: 'text-rose-600',
-  writing: 'text-amber-600',
-  reading: 'text-emerald-600',
-  listening: 'text-sky-600',
+  speaking: 'text-destructive',
+  writing: 'text-accent-foreground',
+  reading: 'text-primary',
+  listening: 'text-muted-foreground',
 };
 
 const FULL_TIME = 60 * 60; // 60 min

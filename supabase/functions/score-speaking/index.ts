@@ -1,5 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { createLogger } from "../_shared/logger.ts";
+
+const log = createLogger("score-speaking");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,7 +14,16 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { audioPath, questionText, questionType } = await req.json();
+    const { audioPath, questionText, questionType, userId } = await req.json();
+
+    // Rate limit: 10 requests per minute per user for AI scoring
+    const rateLimitKey = userId || "anon";
+    if (!checkRateLimit(`score-speak:${rateLimitKey}`, 10)) {
+      log.warn("rate_limited", { user_id: rateLimitKey });
+      return rateLimitResponse(corsHeaders);
+    }
+
+    log.info("request_received", { details: { questionType } });
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 

@@ -1,4 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { createLogger } from "../_shared/logger.ts";
+
+const log = createLogger("score-reading-listening");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,7 +14,21 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { user_answer, question_text, question_type, correct_answer, skill } = await req.json();
+    const { user_answer, question_text, question_type, correct_answer, skill, userId } = await req.json();
+    if (!question_text || !question_type) {
+      return new Response(JSON.stringify({ error: "Missing fields" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Rate limit: 10 requests per minute per user
+    const rateLimitKey = userId || "anon";
+    if (!checkRateLimit(`score-rl:${rateLimitKey}`, 10)) {
+      log.warn("rate_limited", { user_id: rateLimitKey });
+      return rateLimitResponse(corsHeaders);
+    }
+
+    log.info("request_received", { details: { question_type, skill } });
     if (!question_text || !question_type) {
       return new Response(JSON.stringify({ error: "Missing fields" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },

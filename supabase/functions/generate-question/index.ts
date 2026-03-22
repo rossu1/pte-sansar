@@ -1,5 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { createLogger } from "../_shared/logger.ts";
+
+const log = createLogger("generate-question");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +17,20 @@ serve(async (req) => {
 
   try {
     const { user_id, skill, question_type } = await req.json();
+    if (!user_id || !skill || !question_type) {
+      return new Response(
+        JSON.stringify({ error: "user_id, skill, and question_type are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Rate limit: 10 requests per minute per user for AI generation
+    if (!checkRateLimit(`gen:${user_id}`, 10)) {
+      log.warn("rate_limited", { user_id });
+      return rateLimitResponse(corsHeaders);
+    }
+
+    log.info("request_received", { user_id, details: { skill, question_type } });
     if (!user_id || !skill || !question_type) {
       return new Response(
         JSON.stringify({ error: "user_id, skill, and question_type are required" }),

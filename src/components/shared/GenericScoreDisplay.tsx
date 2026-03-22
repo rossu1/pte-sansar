@@ -23,41 +23,91 @@ interface Props {
   onNext: () => void;
 }
 
+/* ── Animated circular score arc ── */
+function ScoreArc({ score, max = 90, size = 120 }: { score: number; max?: number; size?: number }) {
+  const r = (size - 12) / 2;
+  const circumference = 2 * Math.PI * r;
+  const fraction = Math.min(score / max, 1);
+  const target = circumference * (1 - fraction);
+  const color = fraction >= 0.67 ? 'hsl(142,71%,45%)' : fraction >= 0.33 ? 'hsl(38,92%,50%)' : 'hsl(0,72%,51%)';
+
+  return (
+    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth="7" />
+        <circle
+          cx={size / 2} cy={size / 2} r={r}
+          fill="none" stroke={color} strokeWidth="7" strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={target}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          style={{
+            animation: 'gauge-fill 1s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            ['--gauge-circumference' as any]: circumference,
+            ['--gauge-target' as any]: target,
+          } as React.CSSProperties}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-3xl font-heading font-bold tabular-nums" style={{ color }}>{score}</span>
+        <span className="text-xs text-muted-foreground">/{max}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ── Animated progress bar ── */
+function ProgressBar({ label, value, max = 30, delay = 0 }: { label: string; value: number; max?: number; delay?: number }) {
+  const pct = Math.min((value / max) * 100, 100);
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs">
+        <span className="text-muted-foreground capitalize">{label.replace(/_/g, ' ')}</span>
+        <span className="font-bold tabular-nums">{value}</span>
+      </div>
+      <div className="h-2 rounded-full bg-muted overflow-hidden">
+        <div
+          className="h-full rounded-full bg-primary"
+          style={{
+            width: `${pct}%`,
+            animation: `progress-bar 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s both`,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function GenericScoreDisplay({
   overall_score, is_correct, feedback_en, feedback_np,
   correct_answer_explanation, extra, improved_version, onNext,
 }: Props) {
   const { lang } = useLang();
-  const scoreColor = overall_score >= 60 ? 'text-green-600' : overall_score >= 30 ? 'text-amber-600' : 'text-red-600';
 
   return (
     <Card className="shadow-sm animate-fade-up">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
-          <CheckCircle className={`w-5 h-5 ${scoreColor}`} />
-          <span className="font-semibold">{t(i18n.score, lang)}</span>
+          <CheckCircle className={`w-5 h-5 ${overall_score >= 60 ? 'text-green-600' : overall_score >= 30 ? 'text-amber-600' : 'text-red-600'}`} />
+          <span className="font-heading font-bold">{t(i18n.score, lang)}</span>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Score */}
-        <div className="text-center">
-          <div className={`text-4xl font-bold tabular-nums ${scoreColor}`}>{overall_score}</div>
-          <div className="text-xs text-muted-foreground">/90</div>
+        {/* Score arc */}
+        <div className="flex flex-col items-center">
+          <ScoreArc score={overall_score} />
           {is_correct !== undefined && (
-            <div className={`text-sm font-medium mt-1 ${is_correct ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`text-sm font-medium mt-2 ${is_correct ? 'text-green-600' : 'text-red-600'}`}>
               {is_correct ? t(i18n.correct, lang) : t(i18n.incorrect, lang)}
             </div>
           )}
         </div>
 
-        {/* Extra scores */}
+        {/* Extra scores as progress bars */}
         {extra && Object.keys(extra).length > 0 && (
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(extra).map(([label, score]) => (
-              <div key={label} className="bg-secondary/50 rounded-lg p-2 text-center">
-                <div className="text-lg font-bold tabular-nums">{score}</div>
-                <div className="text-xs text-muted-foreground capitalize">{label.replace(/_/g, ' ')}</div>
-              </div>
+          <div className="space-y-2">
+            {Object.entries(extra).map(([label, score], i) => (
+              <ProgressBar key={label} label={label} value={score} delay={i * 0.1} />
             ))}
           </div>
         )}
@@ -78,13 +128,13 @@ export default function GenericScoreDisplay({
 
         {/* Improved version */}
         {improved_version && (
-          <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-3 border border-green-200 dark:border-green-900">
-            <h4 className="text-xs font-semibold uppercase text-green-700 dark:text-green-400 mb-1">Improved Version</h4>
+          <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+            <h4 className="text-xs font-semibold uppercase text-green-700 mb-1">Improved Version</h4>
             <p className="text-sm leading-relaxed">{improved_version}</p>
           </div>
         )}
 
-        <Button onClick={onNext} className="w-full gap-2">
+        <Button onClick={onNext} className="w-full gap-2 btn-press">
           {t(i18n.next, lang)} <ArrowRight className="w-4 h-4" />
         </Button>
       </CardContent>

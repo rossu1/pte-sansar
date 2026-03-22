@@ -268,6 +268,13 @@ export default function MockTestPage() {
   const handleSubmitQuestion = async () => {
     if (!currentQ || !user) return;
 
+    // Stop any playing audio
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+    speechSynthesis.cancel();
+
     // Speaking questions use the recorder flow
     if (currentQ.skill === 'speaking') {
       if (recorder.phase === 'idle') {

@@ -11,6 +11,7 @@ import { useSmartQuestion } from '@/hooks/useSmartQuestion';
 import QuestionSkeleton from '@/components/shared/QuestionSkeleton';
 import GenericScoreDisplay from '@/components/shared/GenericScoreDisplay';
 import { toast } from 'sonner';
+import { sanitizeText } from '@/lib/sanitize';
 
 const i18n = {
   writing: { en: 'Writing Practice', np: 'लेखन अभ्यास' },

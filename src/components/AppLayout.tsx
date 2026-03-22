@@ -5,8 +5,9 @@ import { useLang } from '@/lib/i18n';
 import {
   LayoutDashboard, Mic, PenTool, BookOpen, Headphones,
   ClipboardList, BarChart3, CreditCard, LogOut, BookOpenCheck, Globe,
-  ArrowLeft, LayoutGrid, Timer, User,
+  ArrowLeft, LayoutGrid, Timer, User, Sun, Moon,
 } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -30,7 +31,30 @@ const bottomTabs = [
   { title: 'Profile', path: '/pricing', icon: User },
 ];
 
+function ThemeToggle({ theme, onToggle }: { theme: string; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      className="relative flex items-center w-14 h-7 rounded-full bg-muted p-0.5 transition-colors btn-press"
+      aria-label="Toggle theme"
+    >
+      <span
+        className={cn(
+          'absolute w-6 h-6 rounded-full bg-card shadow-md flex items-center justify-center transition-transform duration-200',
+          theme === 'dark' ? 'translate-x-7' : 'translate-x-0'
+        )}
+      >
+        {theme === 'light' ? (
+          <Sun className="w-3.5 h-3.5 text-warning" />
+        ) : (
+          <Moon className="w-3.5 h-3.5 text-primary" />
+        )}
+      </span>
+    </button>
+  );
+}
 function DesktopSidebar() {
+
   const { signOut } = useAuth();
   const { lang, toggle } = useLang();
   const navigate = useNavigate();
@@ -145,10 +169,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { theme, toggle: toggleTheme } = useTheme();
   const showBack = location.pathname !== '/';
 
   return (
-    <div className="min-h-screen flex w-full">
+    <div className="min-h-screen flex w-full bg-background text-foreground">
       <DesktopSidebar />
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile header */}
@@ -159,11 +184,17 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </Button>
           )}
           <div className="flex items-center gap-2 ml-auto">
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
               <BookOpenCheck className="w-3.5 h-3.5 text-primary-foreground" />
             </div>
             <span className="font-heading font-bold text-sm">PTE Sathi</span>
           </div>
+        </header>
+
+        {/* Desktop header with theme toggle */}
+        <header className="hidden md:flex h-12 items-center justify-end border-b bg-card px-4 shrink-0">
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
         </header>
 
         <main className="flex-1 overflow-auto pb-16 md:pb-0">

@@ -107,6 +107,9 @@ export default function MockTestPage() {
   const [audioPlayed, setAudioPlayed] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
 
+  // Speaking recorder
+  const recorder = useRecorder();
+
   // Results
   const [finalScores, setFinalScores] = useState<{ overall: number; speaking: number; writing: number; reading: number; listening: number } | null>(null);
   const [prevScore, setPrevScore] = useState<number | null>(null);

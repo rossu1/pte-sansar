@@ -177,6 +177,14 @@ export default function WritingPage() {
         ✍️ {t(i18n.writing, lang)}
       </h1>
 
+      {isIelts && (
+        <IeltsBanner
+          variant="amber"
+          message="This module is optimised for PTE Academic. IELTS Writing support is coming soon."
+          dismissible
+        />
+      )}
+
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full grid grid-cols-2">
           {tabMap.map(([type, label]) => (

@@ -197,6 +197,13 @@ export default function ReadingPage() {
         📖 {t(i18n.reading, lang)}
       </h1>
 
+      {isIelts && (
+        <IeltsBanner
+          variant="green"
+          message="Great news — our Reading practice is fully compatible with IELTS Academic preparation. Practice away!"
+        />
+      )}
+
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full grid grid-cols-4">
           {tabMap.map(([type, label]) => (

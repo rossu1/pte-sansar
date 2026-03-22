@@ -84,9 +84,23 @@ export default function Dashboard() {
           {t(i18n.welcome, lang)}, {profile?.full_name || 'Student'} 👋
         </h1>
         {daysUntilExam !== null && (
-          <p className="text-muted-foreground mt-1">
-            <CalendarDays className="inline w-4 h-4 mr-1 -mt-0.5" />
+          <p className="text-muted-foreground mt-1 flex items-center gap-1 flex-wrap">
+            <CalendarDays className="inline w-4 h-4 mr-0.5 -mt-0.5" />
             <span className="font-semibold text-accent">{daysUntilExam}</span> {t(i18n.daysLeft, lang)} ({profile?.exam_type})
+            {(profile?.exam_type === 'IELTS' || profile?.exam_type === 'Both') && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex items-center gap-1 ml-1 text-xs font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800 cursor-help">
+                      <Info className="w-3 h-3" /> Partial support
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-[260px] text-center">
+                    Full IELTS support is coming soon. Reading & Listening are fully compatible, while Speaking & Writing are optimised for PTE.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </p>
         )}
       </div>

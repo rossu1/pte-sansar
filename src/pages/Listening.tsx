@@ -229,6 +229,13 @@ export default function ListeningPage() {
         🎧 {t(i18n.listening, lang)}
       </h1>
 
+      {isIelts && (
+        <IeltsBanner
+          variant="green"
+          message="Our Listening practice is fully compatible with IELTS preparation. These question types appear in both PTE and IELTS exams."
+        />
+      )}
+
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full grid grid-cols-4">
           {tabMap.map(([type, label]) => (

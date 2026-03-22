@@ -249,6 +249,14 @@ export default function SpeakingPage() {
         🎙️ {t(i18n.speaking, lang)}
       </h1>
 
+      {isIelts && (
+        <IeltsBanner
+          variant="amber"
+          message="This module is optimised for PTE Academic. IELTS Speaking support is coming soon."
+          dismissible
+        />
+      )}
+
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full grid grid-cols-3">
           {tabMap.map(([type, label]) => (

@@ -560,6 +560,19 @@ export default function MockTestPage() {
             <p className="text-sm leading-relaxed">{currentQ.question_text}</p>
           )}
 
+          {/* Audio player for listening questions */}
+          {currentQ.skill === 'listening' && (
+            <Button
+              variant="outline"
+              onClick={playAudio}
+              disabled={ttsLoading || audioPlayed}
+              className="w-full gap-2"
+            >
+              {ttsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Volume2 className="w-4 h-4" />}
+              {audioPlayed ? 'Audio played — single listen only' : ttsLoading ? 'Loading audio…' : 'Play Audio'}
+            </Button>
+          )}
+
           {/* MCQ options */}
           {options.length > 0 && (
             <div className="space-y-2">

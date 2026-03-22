@@ -106,6 +106,7 @@ export default function MockTestPage() {
   // Audio playback for listening questions
   const [audioPlayed, setAudioPlayed] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Speaking recorder
   const recorder = useRecorder();

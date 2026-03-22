@@ -150,6 +150,7 @@ export default function ReadingPage() {
         ai_feedback: data.feedback_en,
         ai_feedback_nepali: data.feedback_np,
       });
+      await supabase.rpc('update_streak_and_xp', { p_user_id: user.id, p_xp_gained: 10 });
       setPhase('result');
     } catch (err: any) {
       toast.error(err.message || 'Scoring failed');

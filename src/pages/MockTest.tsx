@@ -220,6 +220,7 @@ export default function MockTestPage() {
     try {
       if (currentQ.audio_url) {
         const audio = new Audio(currentQ.audio_url);
+        currentAudioRef.current = audio;
         await audio.play();
       } else {
         const response = await fetch(

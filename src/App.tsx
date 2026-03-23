@@ -15,6 +15,7 @@ import ReadingPage from "@/pages/Reading";
 import ListeningPage from "@/pages/Listening";
 import PricingPage from "@/pages/Pricing";
 import MockTestPage from "@/pages/MockTest";
+import ProgressPage from "@/pages/Progress";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();

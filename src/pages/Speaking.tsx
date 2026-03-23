@@ -12,6 +12,8 @@ import RecordingPanel from '@/components/speaking/RecordingPanel';
 import ScoreDisplay from '@/components/speaking/ScoreDisplay';
 import QuestionSkeleton from '@/components/shared/QuestionSkeleton';
 import { useSmartQuestion } from '@/hooks/useSmartQuestion';
+import { useDailyLimit } from '@/hooks/useDailyLimit';
+import { Lock } from 'lucide-react';
 
 const i18n = {
   speaking: { en: 'Speaking Practice', np: 'बोल्ने अभ्यास' },

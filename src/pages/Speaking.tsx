@@ -364,6 +364,14 @@ export default function SpeakingPage() {
           </TabsContent>
         ))}
       </Tabs>
+
+      <RecordingConsentModal
+        open={showConsent}
+        onAccept={() => {
+          setHasConsent(true);
+          setShowConsent(false);
+        }}
+      />
     </div>
   );
 }

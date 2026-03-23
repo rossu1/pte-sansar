@@ -76,7 +76,8 @@ export default function SpeakingPage() {
       });
   }, [user]);
 
-  const isPremiumUser = userPlan === 'pro' || userPlan === 'intensive';
+  const isPremiumUser = userPlan === 'pro';
+  const dailyLimit = useDailyLimit(user?.id, userPlan);
 
   // Load static speaking questions (for free users or fallback)
   useEffect(() => {

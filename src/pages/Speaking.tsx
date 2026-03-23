@@ -342,7 +342,7 @@ export default function SpeakingPage() {
                     onStopRecording={handleStopRecording}
                   />
                 ) : recorder.scoreResult ? (
-                  <ScoreDisplay result={recorder.scoreResult} onNext={nextQuestion} />
+              <ScoreDisplay result={recorder.scoreResult} onNext={() => { dailyLimit.increment(); nextQuestion(); }} isPro={isPremiumUser} />
                 ) : null}
               </div>
             ) : null}

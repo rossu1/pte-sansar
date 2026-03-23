@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import IeltsBanner from '@/components/shared/IeltsBanner';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';

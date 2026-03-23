@@ -6,7 +6,7 @@ import IeltsBanner from '@/components/shared/IeltsBanner';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Volume2, Loader2 as VolumeLoader } from 'lucide-react';
+import { Volume2, Loader2 as VolumeLoader, Lock } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import { useRecorder } from '@/components/speaking/SpeakingRecorder';
 import RecordingPanel from '@/components/speaking/RecordingPanel';
@@ -14,7 +14,7 @@ import ScoreDisplay from '@/components/speaking/ScoreDisplay';
 import QuestionSkeleton from '@/components/shared/QuestionSkeleton';
 import { useSmartQuestion } from '@/hooks/useSmartQuestion';
 import { useDailyLimit } from '@/hooks/useDailyLimit';
-import { Lock } from 'lucide-react';
+import RecordingConsentModal, { hasRecordingConsent, grantRecordingConsent } from '@/components/speaking/RecordingConsentModal';
 
 const i18n = {
   speaking: { en: 'Speaking Practice', np: 'बोल्ने अभ्यास' },
@@ -63,6 +63,8 @@ export default function SpeakingPage() {
   const [ttsLoading, setTtsLoading] = useState(false);
   const [userPlan, setUserPlan] = useState<string>('free');
   const [smartQuestion, setSmartQuestion] = useState<Question | null>(null);
+  const [showConsent, setShowConsent] = useState(false);
+  const [hasConsent, setHasConsent] = useState(() => hasRecordingConsent());
 
   const recorder = useRecorder();
   const smartQ = useSmartQuestion();
@@ -172,6 +174,11 @@ export default function SpeakingPage() {
   }, [recorder.phase]);
 
   const handleStartRecording = useCallback(async () => {
+    if (!hasConsent) {
+      clearInterval(prepTimerRef.current);
+      setShowConsent(true);
+      return;
+    }
     clearInterval(prepTimerRef.current);
     const rec = await recorder.startRecording();
     if (rec && question && user) {
@@ -186,7 +193,7 @@ export default function SpeakingPage() {
         });
       };
     }
-  }, [recorder.startRecording, question, user]);
+  }, [recorder.startRecording, question, user, hasConsent]);
 
   const handleStopRecording = useCallback(() => {
     clearInterval(recTimerRef.current);
@@ -357,6 +364,14 @@ export default function SpeakingPage() {
           </TabsContent>
         ))}
       </Tabs>
+
+      <RecordingConsentModal
+        open={showConsent}
+        onAccept={() => {
+          setHasConsent(true);
+          setShowConsent(false);
+        }}
+      />
     </div>
   );
 }

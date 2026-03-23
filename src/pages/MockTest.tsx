@@ -12,7 +12,7 @@ import {
   Clock, BookOpen, Mic, PenLine, Headphones, Eye,
   ChevronRight, Trophy, TrendingUp, TrendingDown, Minus,
   Loader2, ArrowRight, CheckCircle, Volume2, Square,
-  RotateCcw, Play,
+  RotateCcw, Play, Lock,
 } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import { toast } from 'sonner';

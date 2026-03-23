@@ -47,7 +47,7 @@ export default function Terms() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">5. Intellectual Property</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          All content, questions, scoring algorithms, and software on PTE Sathi are the intellectual property of Udan Technologies Pvt. Ltd. You may not reproduce, distribute or create derivative works without written permission.
+          All content, questions, scoring algorithms, and software on PTE Sansar are the intellectual property of Udan Technologies Pvt. Ltd. You may not reproduce, distribute or create derivative works without written permission.
         </p>
       </section>
 

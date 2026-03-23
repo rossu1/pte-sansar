@@ -29,7 +29,7 @@ const bottomTabs = [
   { title: 'Practice', path: '/practice/speaking', icon: LayoutGrid, matchPaths: ['/practice/speaking', '/practice/writing', '/practice/reading', '/practice/listening'] },
   { title: 'Mock', path: '/mock-test', icon: Timer },
   { title: 'Progress', path: '/progress', icon: BarChart3 },
-  { title: 'Profile', path: '/pricing', icon: User },
+  { title: 'Profile', path: '/profile', icon: User },
 ];
 
 function ThemeToggle({ theme, onToggle }: { theme: string; onToggle: () => void }) {

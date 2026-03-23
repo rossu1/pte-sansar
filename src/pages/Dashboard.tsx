@@ -80,13 +80,6 @@ function ReadinessGauge({ score }: { score: number }) {
 }
 
 
-
-    prevRef.current = value;
-  }, [value]);
-
-  return <>{display}</>;
-}
-
 /* ── Mini Sparkline ── */
 function Sparkline({ data }: { data: number[] }) {
   const chartData = data.map((v, i) => ({ i, v }));

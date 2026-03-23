@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const STORAGE_KEY = 'pte-sathi-theme';
+const STORAGE_KEY = 'pte-sansar-theme';
 type Theme = 'light' | 'dark';
 
 export function useTheme() {

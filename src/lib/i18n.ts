@@ -11,19 +11,19 @@ interface LangStore {
 // Persist to localStorage if available
 const getInitialLang = (): Lang => {
   try {
-    return (localStorage.getItem('pte-sathi-lang') as Lang) || 'en';
+    return (localStorage.getItem('pte-sansar-lang') as Lang) || 'en';
   } catch { return 'en'; }
 };
 
 export const useLang = create<LangStore>((set) => ({
   lang: getInitialLang(),
   setLang: (lang) => {
-    localStorage.setItem('pte-sathi-lang', lang);
+    localStorage.setItem('pte-sansar-lang', lang);
     set({ lang });
   },
   toggle: () => set((s) => {
     const next = s.lang === 'en' ? 'np' : 'en';
-    localStorage.setItem('pte-sathi-lang', next);
+    localStorage.setItem('pte-sansar-lang', next);
     return { lang: next };
   }),
 }));

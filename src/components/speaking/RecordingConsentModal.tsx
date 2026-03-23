@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ShieldCheck } from 'lucide-react';
 
-const CONSENT_KEY = 'pte-sathi-recording-consent';
+const CONSENT_KEY = 'pte-sansar-recording-consent';
 
 export function hasRecordingConsent(): boolean {
   try {

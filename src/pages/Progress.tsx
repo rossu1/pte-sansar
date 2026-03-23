@@ -129,7 +129,9 @@ export default function Progress() {
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={mockScores}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
-                <XAxis dataKey="date" tick={{ fontSize: 11, angle: -35, textAnchor: 'end' }} height={50} className="fill-muted-foreground" />
+                <XAxis dataKey="date" tick={({ x, y, payload }: any) => (
+                  <text x={x} y={y} dy={8} textAnchor="end" transform={`rotate(-35, ${x}, ${y})`} fontSize={11} className="fill-muted-foreground">{payload.value}</text>
+                )} height={50} className="fill-muted-foreground" />
                 <YAxis domain={[0, 90]} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                 <Tooltip
                   contentStyle={{

@@ -12,6 +12,22 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+function PteSansarLogo({ size = 32 }: { size?: number }) {
+  const half = size / 2;
+  const rOuter = size * 0.375;
+  const rMid = size * 0.25;
+  const rInner = size * 0.125;
+  const rx = size * 0.1875;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none" className="shrink-0">
+      <rect width={size} height={size} rx={rx} fill="#1A5C38" />
+      <circle cx={half} cy={half} r={rOuter} stroke="white" strokeOpacity="0.25" strokeWidth="1.5" fill="none" />
+      <circle cx={half} cy={half} r={rMid} stroke="white" strokeOpacity="0.45" strokeWidth="1.5" fill="none" />
+      <circle cx={half} cy={half} r={rInner} fill="white" />
+    </svg>
+  );
+}
+
 const sidebarItems = [
   { title: 'Dashboard', path: '/', icon: LayoutDashboard },
   { title: 'Speaking', path: '/practice/speaking', icon: Mic },

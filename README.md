@@ -41,3 +41,16 @@ Rate limiting on all AI edge functions (10 req/min)
 Input sanitisation on all form fields
 Environment variables stored in Supabase Vault — never in frontend code
 Error boundaries on every page
+<p align="center">
+  <img src="banner.svg" alt="PTE Sansar Banner" width="100%"/>
+</p>
+
+<p align="center">
+  <img src="tech_badges.svg" alt="Tech Stack" width="100%"/>
+</p>
+
+<p align="center">
+  <img src="features.svg" alt="PTE Sansar Features" width="100%"/>
+</p>
+
+<img src="logo.svg" alt="PTE Sansar Logo" width="80" height="80" align="left"/>

@@ -43,7 +43,7 @@ export default function RecordingConsentModal({
           </div>
           <DialogTitle className="text-center">Voice Recording Notice</DialogTitle>
           <DialogDescription className="text-center text-sm leading-relaxed pt-2">
-            PTE Sathi records your voice to provide AI scoring. Recordings are processed within seconds and{' '}
+            PTE Sansar records your voice to provide AI scoring. Recordings are processed within seconds and{' '}
             <strong className="text-foreground">permanently deleted within 24 hours</strong>. By continuing you agree to our{' '}
             <Link to="/privacy" className="text-primary underline underline-offset-2" target="_blank">
               Privacy Policy

@@ -72,7 +72,7 @@ function DesktopSidebar() {
           <BookOpenCheck className="w-4 h-4 text-sidebar-primary-foreground" />
         </div>
         <span className="font-heading font-bold text-sidebar-foreground text-lg whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">
-          PTE Sathi
+          PTE Sansar
         </span>
       </div>
 
@@ -189,7 +189,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
               <BookOpenCheck className="w-3.5 h-3.5 text-primary-foreground" />
             </div>
-            <span className="font-heading font-bold text-sm">PTE Sathi</span>
+            <span className="font-heading font-bold text-sm">PTE Sansar</span>
           </div>
         </header>
 
@@ -204,7 +204,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           </div>
           {/* Footer */}
           <footer className="border-t mt-12 py-6 px-4 text-center text-xs text-muted-foreground space-y-1">
-            <p>© {new Date().getFullYear()} Udan Technologies Pvt. Ltd.</p>
+            <p>© {new Date().getFullYear()} PTE Sansar by Udan Technologies Pvt. Ltd.</p>
             <div className="flex items-center justify-center gap-3">
               <a href="/privacy" onClick={(e) => { e.preventDefault(); navigate('/privacy'); }} className="underline underline-offset-2 hover:text-foreground transition-colors">Privacy Policy</a>
               <span>·</span>

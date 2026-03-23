@@ -1,5 +1,5 @@
 /**
- * Input sanitization utilities for PTE Sathi.
+ * Input sanitization utilities for PTE Sansar.
  * Strips HTML tags, escapes dangerous characters, and enforces length limits.
  */
 

@@ -9,7 +9,7 @@ export default function Terms() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">1. Introduction</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          These Terms of Service ("Terms") govern your use of PTE Sathi, operated by <strong className="text-foreground">Udan Technologies Pvt. Ltd.</strong>, a company registered in Nepal. By using our service you agree to these Terms.
+          These Terms of Service ("Terms") govern your use of PTE Sansar, operated by <strong className="text-foreground">Udan Technologies Pvt. Ltd.</strong>, a company registered in Nepal. By using our service you agree to these Terms.
         </p>
       </section>
 
@@ -47,14 +47,14 @@ export default function Terms() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">5. Intellectual Property</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          All content, questions, scoring algorithms, and software on PTE Sathi are the intellectual property of Udan Technologies Pvt. Ltd. You may not reproduce, distribute or create derivative works without written permission.
+          All content, questions, scoring algorithms, and software on PTE Sansar are the intellectual property of Udan Technologies Pvt. Ltd. You may not reproduce, distribute or create derivative works without written permission.
         </p>
       </section>
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">6. Limitation of Liability</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          PTE Sathi is provided "as is" without warranties of any kind. We do not guarantee that AI scores will match official PTE exam results. Udan Technologies Pvt. Ltd. shall not be liable for any indirect, incidental, special or consequential damages arising from your use of the service, including but not limited to loss of data, exam results or revenue. Our total liability is limited to the amount you paid for the service in the 12 months preceding the claim.
+          PTE Sansar is provided "as is" without warranties of any kind. We do not guarantee that AI scores will match official PTE exam results. Udan Technologies Pvt. Ltd. shall not be liable for any indirect, incidental, special or consequential damages arising from your use of the service, including but not limited to loss of data, exam results or revenue. Our total liability is limited to the amount you paid for the service in the 12 months preceding the claim.
         </p>
       </section>
 

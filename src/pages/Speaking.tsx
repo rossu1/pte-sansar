@@ -63,6 +63,8 @@ export default function SpeakingPage() {
   const [ttsLoading, setTtsLoading] = useState(false);
   const [userPlan, setUserPlan] = useState<string>('free');
   const [smartQuestion, setSmartQuestion] = useState<Question | null>(null);
+  const [showConsent, setShowConsent] = useState(false);
+  const [hasConsent, setHasConsent] = useState(() => hasRecordingConsent());
 
   const recorder = useRecorder();
   const smartQ = useSmartQuestion();

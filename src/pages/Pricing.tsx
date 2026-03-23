@@ -42,7 +42,7 @@ const proFeatures = [
   { text: { en: 'Unlimited mock tests', np: 'असीमित मक टेस्ट' }, included: true },
 ];
 
-const WHATSAPP_LINK = 'https://wa.me/610420758831?text=Hi%2C%20I%20want%20to%20upgrade%20my%20PTE-Sathi%20plan';
+const WHATSAPP_LINK = 'https://wa.me/610420758831?text=Hi%2C%20I%20want%20to%20upgrade%20my%20PTE-Sansar%20plan';
 
 export default function PricingPage() {
   const { user } = useAuth();

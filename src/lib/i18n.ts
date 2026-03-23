@@ -23,7 +23,7 @@ export const useLang = create<LangStore>((set) => ({
   },
   toggle: () => set((s) => {
     const next = s.lang === 'en' ? 'np' : 'en';
-    localStorage.setItem('pte-sathi-lang', next);
+    localStorage.setItem('pte-sansar-lang', next);
     return { lang: next };
   }),
 }));

@@ -197,18 +197,12 @@ export default function Dashboard() {
                   <span className="text-sm text-muted-foreground">{t(i18n.days, lang)}</span>
                 </div>
               )}
-              {/* Streak & XP inline */}
+              {/* Streak inline */}
               <div className="flex items-center gap-4 justify-center sm:justify-start">
                 <div className="flex items-center gap-1.5">
                   <Flame className="w-4 h-4 text-accent" />
                   <span className="font-bold tabular-nums">{profile?.streak_count || 0}</span>
                   <span className="text-xs text-muted-foreground">{t(i18n.streak, lang)}</span>
-                </div>
-                <div className="w-px h-4 bg-border" />
-                <div className="flex items-center gap-1.5">
-                  <Zap className="w-4 h-4 text-primary" />
-                  <span className="font-bold tabular-nums"><AnimatedNumber value={profile?.xp_points || 0} /></span>
-                  <span className="text-xs text-muted-foreground">{t(i18n.xp, lang)}</span>
                 </div>
               </div>
             </div>

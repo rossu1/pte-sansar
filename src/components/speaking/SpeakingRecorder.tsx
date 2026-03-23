@@ -103,7 +103,7 @@ export function useRecorder() {
         time_taken_seconds: timeTaken,
       });
 
-      await supabase.rpc('update_streak_and_xp', { p_user_id: opts.userId, p_xp_gained: 10 });
+      await supabase.rpc('update_streak_and_xp', { p_user_id: opts.userId });
       setPhase('result');
       opts.onScored(result);
     } catch (err: any) {

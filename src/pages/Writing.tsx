@@ -137,7 +137,7 @@ export default function WritingPage() {
         ai_feedback_nepali: data.feedback_np,
         time_taken_seconds: (TIME_LIMITS[activeTab] || 600) - countdown,
       });
-      await supabase.rpc('update_streak_and_xp', { p_user_id: user.id, p_xp_gained: 10 });
+      await supabase.rpc('update_streak_and_xp', { p_user_id: user.id });
       setPhase('result');
     } catch (err: any) {
       toast.error(err.message || 'Scoring failed');

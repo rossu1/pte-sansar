@@ -778,10 +778,6 @@ export default function MockTestPage() {
               })}
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <CheckCircle className="w-3.5 h-3.5 text-primary" />
-              +50 XP earned
-            </div>
 
             <Button onClick={() => navigate('/')} className="w-full gap-2">
               {t(i18n.backDash, lang)} <ArrowRight className="w-4 h-4" />

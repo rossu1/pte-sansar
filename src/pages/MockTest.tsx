@@ -119,6 +119,8 @@ export default function MockTestPage() {
   const [prevScore, setPrevScore] = useState<number | null>(null);
 
   const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const [userPlan, setUserPlan] = useState('free');
+  const [monthlyMockCount, setMonthlyMockCount] = useState(0);
 
   // Session persistence
   const sessionIdRef = useRef<string | null>(null);

@@ -50,11 +50,21 @@ export default function Progress() {
         .limit(10);
 
       if (mocks) {
+        const allSameDay =
+          mocks.length > 1 &&
+          mocks.every(
+            (m) => new Date(m.completed_at).toDateString() === new Date(mocks[0].completed_at).toDateString()
+          );
+
         setMockScores(
-          mocks.map((m) => ({
-            date: new Date(m.completed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            score: Number(m.total_score) || 0,
-          }))
+          mocks.map((m) => {
+            const d = new Date(m.completed_at);
+            const dateStr = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+            const label = allSameDay
+              ? `${dateStr} ${d.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit', hour12: false })}`
+              : dateStr;
+            return { date: label, score: Number(m.total_score) || 0 };
+          })
         );
       }
 
@@ -119,7 +129,9 @@ export default function Progress() {
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={mockScores}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                <XAxis dataKey="date" tick={({ x, y, payload }: any) => (
+                  <text x={x} y={y} dy={8} textAnchor="end" transform={`rotate(-35, ${x}, ${y})`} fontSize={11} className="fill-muted-foreground">{payload.value}</text>
+                )} height={50} className="fill-muted-foreground" />
                 <YAxis domain={[0, 90]} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                 <Tooltip
                   contentStyle={{

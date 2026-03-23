@@ -73,6 +73,8 @@ const App = () => (
             <Route path="/mock-test" element={<ProtectedRoute><ErrorBoundary><MockTestPage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/progress" element={<ProtectedRoute><ErrorBoundary><ProgressPage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/pricing" element={<ProtectedRoute><ErrorBoundary><PricingPage /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/privacy" element={<ProtectedRoute><ErrorBoundary><PrivacyPage /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/terms" element={<ProtectedRoute><ErrorBoundary><TermsPage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

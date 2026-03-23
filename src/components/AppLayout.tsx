@@ -201,6 +201,15 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <div className="animate-fade-up">
             {children}
           </div>
+          {/* Footer */}
+          <footer className="border-t mt-12 py-6 px-4 text-center text-xs text-muted-foreground space-y-1">
+            <p>© {new Date().getFullYear()} Udan Technologies Pvt. Ltd.</p>
+            <div className="flex items-center justify-center gap-3">
+              <a href="/privacy" onClick={(e) => { e.preventDefault(); navigate('/privacy'); }} className="underline underline-offset-2 hover:text-foreground transition-colors">Privacy Policy</a>
+              <span>·</span>
+              <a href="/terms" onClick={(e) => { e.preventDefault(); navigate('/terms'); }} className="underline underline-offset-2 hover:text-foreground transition-colors">Terms of Service</a>
+            </div>
+          </footer>
         </main>
       </div>
       <MobileBottomBar />

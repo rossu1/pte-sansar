@@ -21,6 +21,7 @@ const sidebarItems = [
   { title: 'Mock Test', path: '/mock-test', icon: ClipboardList },
   { title: 'Progress', path: '/progress', icon: BarChart3 },
   { title: 'Pricing', path: '/pricing', icon: CreditCard },
+  { title: 'Profile', path: '/profile', icon: Settings },
 ];
 
 const bottomTabs = [

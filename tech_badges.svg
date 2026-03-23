@@ -1,0 +1,22 @@
+<svg width="860" height="52" viewBox="0 0 860 52" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="8" width="120" height="36" rx="8" fill="#1A5C38"/>
+  <text x="60" y="31" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#ffffff">React 18</text>
+
+  <rect x="130" y="8" width="130" height="36" rx="8" fill="#3178C6"/>
+  <text x="195" y="31" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#ffffff">TypeScript</text>
+
+  <rect x="270" y="8" width="130" height="36" rx="8" fill="#3ECF8E"/>
+  <text x="335" y="31" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#1a1a18">Supabase</text>
+
+  <rect x="410" y="8" width="100" height="36" rx="8" fill="#646CFF"/>
+  <text x="460" y="31" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#ffffff">Vite</text>
+
+  <rect x="520" y="8" width="150" height="36" rx="8" fill="#0F172A"/>
+  <text x="595" y="31" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#ffffff">Tailwind CSS</text>
+
+  <rect x="680" y="8" width="80" height="36" rx="8" fill="#FF6B6B"/>
+  <text x="720" y="31" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#ffffff">Lovable</text>
+
+  <rect x="770" y="8" width="90" height="36" rx="8" fill="#E8A020"/>
+  <text x="815" y="31" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="500" fill="#1a1a18">Claude AI</text>
+</svg>

@@ -1,0 +1,52 @@
+<svg width="1280" height="320" viewBox="0 0 1280 320" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1280" height="320" fill="#FAFAF7" rx="16"/>
+
+  <rect x="40" y="40" width="230" height="240" rx="16" fill="#ffffff" stroke="#E0E0D8" stroke-width="1"/>
+  <rect x="40" y="40" width="230" height="56" rx="16" fill="#1A5C38"/>
+  <rect x="40" y="80" width="230" height="16" fill="#1A5C38"/>
+  <text x="155" y="75" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#ffffff">Speaking</text>
+  <text x="155" y="130" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Read Aloud</text>
+  <text x="155" y="155" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Repeat Sentence</text>
+  <text x="155" y="180" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Describe Image</text>
+  <rect x="60" y="210" width="190" height="32" rx="8" fill="#E8F5EE"/>
+  <text x="155" y="231" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#1A5C38">AI scored + Nepali feedback</text>
+
+  <rect x="290" y="40" width="230" height="240" rx="16" fill="#ffffff" stroke="#E0E0D8" stroke-width="1"/>
+  <rect x="290" y="40" width="230" height="56" rx="16" fill="#C47F00"/>
+  <rect x="290" y="80" width="230" height="16" fill="#C47F00"/>
+  <text x="405" y="75" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#ffffff">Writing</text>
+  <text x="405" y="130" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Summarise Written Text</text>
+  <text x="405" y="155" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Write Essay</text>
+  <rect x="310" y="210" width="190" height="32" rx="8" fill="#FEF3DC"/>
+  <text x="405" y="231" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#C47F00">Grammar + structure scoring</text>
+
+  <rect x="540" y="40" width="230" height="240" rx="16" fill="#ffffff" stroke="#E0E0D8" stroke-width="1"/>
+  <rect x="540" y="40" width="230" height="56" rx="16" fill="#1A5CA8"/>
+  <rect x="540" y="80" width="230" height="16" fill="#1A5CA8"/>
+  <text x="655" y="75" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#ffffff">Reading</text>
+  <text x="655" y="125" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Multiple Choice</text>
+  <text x="655" y="148" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Reorder Paragraphs</text>
+  <text x="655" y="171" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">R/W Fill in Blanks</text>
+  <text x="655" y="194" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Reading Fill in Blanks</text>
+  <rect x="560" y="210" width="190" height="32" rx="8" fill="#E6F1FB"/>
+  <text x="655" y="231" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#1A5CA8">Instant answer explanation</text>
+
+  <rect x="790" y="40" width="230" height="240" rx="16" fill="#ffffff" stroke="#E0E0D8" stroke-width="1"/>
+  <rect x="790" y="40" width="230" height="56" rx="16" fill="#B03070"/>
+  <rect x="790" y="80" width="230" height="16" fill="#B03070"/>
+  <text x="905" y="75" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#ffffff">Listening</text>
+  <text x="905" y="125" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Summarise Spoken Text</text>
+  <text x="905" y="148" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Multiple Choice</text>
+  <text x="905" y="171" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Fill in Blanks</text>
+  <text x="905" y="194" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#4A4A45">Highlight Correct Summary</text>
+  <rect x="810" y="210" width="190" height="32" rx="8" fill="#FBEAF0"/>
+  <text x="905" y="231" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#B03070">Single-listen enforcement</text>
+
+  <rect x="1040" y="40" width="200" height="110" rx="16" fill="#1A5C38"/>
+  <text x="1140" y="88" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="32" font-weight="700" fill="#ffffff">94</text>
+  <text x="1140" y="112" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#ffffff" opacity="0.8">Questions seeded</text>
+
+  <rect x="1040" y="170" width="200" height="110" rx="16" fill="#0F1F2E"/>
+  <text x="1140" y="218" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="32" font-weight="700" fill="#E8A020">∞</text>
+  <text x="1140" y="242" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-size="13" fill="#ffffff" opacity="0.8">AI-generated (Pro)</text>
+</svg>

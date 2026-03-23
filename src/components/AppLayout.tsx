@@ -5,7 +5,7 @@ import { useLang } from '@/lib/i18n';
 import {
   LayoutDashboard, Mic, PenTool, BookOpen, Headphones,
   ClipboardList, BarChart3, CreditCard, LogOut, BookOpenCheck, Globe,
-  ArrowLeft, LayoutGrid, Timer, User, Sun, Moon,
+  ArrowLeft, LayoutGrid, Timer, User, Sun, Moon, Settings,
 } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';

@@ -72,7 +72,7 @@ function DesktopSidebar() {
           <BookOpenCheck className="w-4 h-4 text-sidebar-primary-foreground" />
         </div>
         <span className="font-heading font-bold text-sidebar-foreground text-lg whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">
-          PTE Sathi
+          PTE Sansar
         </span>
       </div>
 

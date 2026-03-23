@@ -9,7 +9,7 @@ export default function Privacy() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">1. Who We Are</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          PTE Sathi is operated by <strong className="text-foreground">Udan Technologies Pvt. Ltd.</strong>, a company registered in Nepal. This policy explains how we collect, use and protect your personal data.
+          PTE Sansar is operated by <strong className="text-foreground">Udan Technologies Pvt. Ltd.</strong>, a company registered in Nepal. This policy explains how we collect, use and protect your personal data.
         </p>
       </section>
 

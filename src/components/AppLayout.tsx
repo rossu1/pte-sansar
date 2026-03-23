@@ -204,7 +204,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           </div>
           {/* Footer */}
           <footer className="border-t mt-12 py-6 px-4 text-center text-xs text-muted-foreground space-y-1">
-            <p>© {new Date().getFullYear()} Udan Technologies Pvt. Ltd.</p>
+            <p>© {new Date().getFullYear()} PTE Sansar by Udan Technologies Pvt. Ltd.</p>
             <div className="flex items-center justify-center gap-3">
               <a href="/privacy" onClick={(e) => { e.preventDefault(); navigate('/privacy'); }} className="underline underline-offset-2 hover:text-foreground transition-colors">Privacy Policy</a>
               <span>·</span>

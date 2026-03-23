@@ -54,7 +54,7 @@ export default function Terms() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">6. Limitation of Liability</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          PTE Sathi is provided "as is" without warranties of any kind. We do not guarantee that AI scores will match official PTE exam results. Udan Technologies Pvt. Ltd. shall not be liable for any indirect, incidental, special or consequential damages arising from your use of the service, including but not limited to loss of data, exam results or revenue. Our total liability is limited to the amount you paid for the service in the 12 months preceding the claim.
+          PTE Sansar is provided "as is" without warranties of any kind. We do not guarantee that AI scores will match official PTE exam results. Udan Technologies Pvt. Ltd. shall not be liable for any indirect, incidental, special or consequential damages arising from your use of the service, including but not limited to loss of data, exam results or revenue. Our total liability is limited to the amount you paid for the service in the 12 months preceding the claim.
         </p>
       </section>
 

@@ -64,7 +64,7 @@ export default function Onboarding() {
             <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">Welcome to PTE Sathi!</h1>
+            <h1 className="text-2xl font-bold text-foreground">Welcome to PTE Sansar!</h1>
           </div>
           <p className="text-muted-foreground">Let's personalize your study plan</p>
         </div>

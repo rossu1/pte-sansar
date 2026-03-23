@@ -65,7 +65,7 @@ export default function AuthPage() {
             <h1 className="text-2xl font-bold text-foreground">PTE Sansar</h1>
           </div>
           <p className="text-muted-foreground text-sm">
-            Your AI-powered exam preparation partner
+            Nepal's first AI-powered PTE preparation companion
           </p>
         </div>
 

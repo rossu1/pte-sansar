@@ -51,6 +51,7 @@ const RECORD_TIMES: Record<string, number> = {
 
 export default function SpeakingPage() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const { lang } = useLang();
   const [activeTab, setActiveTab] = useState('Read Aloud');
   const isIelts = profile?.exam_type === 'IELTS' || profile?.exam_type === 'Both';

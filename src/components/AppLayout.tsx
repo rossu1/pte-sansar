@@ -184,10 +184,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           )}
           <div className="flex items-center gap-2 ml-auto">
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <BookOpenCheck className="w-3.5 h-3.5 text-primary-foreground" />
-            </div>
-            <span className="font-heading font-bold text-sm">PTE Sansar</span>
+            <PteSansarLogo size={28} />
+            <span className="font-heading font-medium text-sm">PTE Sansar</span>
           </div>
         </header>
 

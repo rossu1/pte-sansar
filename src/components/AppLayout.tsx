@@ -189,7 +189,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
               <BookOpenCheck className="w-3.5 h-3.5 text-primary-foreground" />
             </div>
-            <span className="font-heading font-bold text-sm">PTE Sathi</span>
+            <span className="font-heading font-bold text-sm">PTE Sansar</span>
           </div>
         </header>
 

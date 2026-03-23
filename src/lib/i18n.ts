@@ -11,7 +11,7 @@ interface LangStore {
 // Persist to localStorage if available
 const getInitialLang = (): Lang => {
   try {
-    return (localStorage.getItem('pte-sathi-lang') as Lang) || 'en';
+    return (localStorage.getItem('pte-sansar-lang') as Lang) || 'en';
   } catch { return 'en'; }
 };
 

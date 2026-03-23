@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Mic, PenTool, BookOpen, Headphones, Trophy, Flame, Zap, CalendarDays, Info, ArrowRight } from 'lucide-react';
+import { Mic, PenTool, BookOpen, Headphones, Trophy, Flame, CalendarDays, Info, ArrowRight } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { LineChart, Line, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { useLang, t } from '@/lib/i18n';

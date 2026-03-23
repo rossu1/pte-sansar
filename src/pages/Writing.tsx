@@ -9,6 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Send } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import { useSmartQuestion } from '@/hooks/useSmartQuestion';
+import { useDailyLimit } from '@/hooks/useDailyLimit';
+import { Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import QuestionSkeleton from '@/components/shared/QuestionSkeleton';
 import GenericScoreDisplay from '@/components/shared/GenericScoreDisplay';
 import { toast } from 'sonner';
@@ -64,7 +67,9 @@ export default function WritingPage() {
       .then(({ data }) => { if (data) setUserPlan(data.plan); });
   }, [user]);
 
-  const isPremium = userPlan === 'pro' || userPlan === 'intensive';
+  const isPremium = userPlan === 'pro';
+  const dailyLimit = useDailyLimit(user?.id, userPlan);
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.from('questions').select('id, question_text, question_type, difficulty, image_url')
@@ -138,6 +143,7 @@ export default function WritingPage() {
         time_taken_seconds: (TIME_LIMITS[activeTab] || 600) - countdown,
       });
       await supabase.rpc('update_streak_and_xp', { p_user_id: user.id });
+      dailyLimit.increment();
       setPhase('result');
     } catch (err: any) {
       toast.error(err.message || 'Scoring failed');
@@ -194,7 +200,13 @@ export default function WritingPage() {
 
         {tabMap.map(([type]) => (
           <TabsContent key={type} value={type} className="mt-4">
-            {activeTab !== type ? null : isLoading ? (
+            {activeTab !== type ? null : !isPremium && dailyLimit.isLimitReached ? (
+              <Card className="shadow-sm"><CardContent className="p-8 text-center space-y-3">
+                <Lock className="w-8 h-8 mx-auto text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">You've used all {dailyLimit.limit} free questions for today. Upgrade to Pro for unlimited practice.</p>
+                <Button variant="outline" onClick={() => navigate('/pricing')}>View Plans</Button>
+              </CardContent></Card>
+            ) : isLoading ? (
               <QuestionSkeleton />
             ) : !question ? (
               <Card className="shadow-sm"><CardContent className="p-8 text-center text-muted-foreground">{t(i18n.noQuestions, lang)}</CardContent></Card>

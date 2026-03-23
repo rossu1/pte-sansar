@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import IeltsBanner from '@/components/shared/IeltsBanner';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -12,6 +13,8 @@ import RecordingPanel from '@/components/speaking/RecordingPanel';
 import ScoreDisplay from '@/components/speaking/ScoreDisplay';
 import QuestionSkeleton from '@/components/shared/QuestionSkeleton';
 import { useSmartQuestion } from '@/hooks/useSmartQuestion';
+import { useDailyLimit } from '@/hooks/useDailyLimit';
+import { Lock } from 'lucide-react';
 
 const i18n = {
   speaking: { en: 'Speaking Practice', np: 'बोल्ने अभ्यास' },
@@ -48,6 +51,7 @@ const RECORD_TIMES: Record<string, number> = {
 
 export default function SpeakingPage() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const { lang } = useLang();
   const [activeTab, setActiveTab] = useState('Read Aloud');
   const isIelts = profile?.exam_type === 'IELTS' || profile?.exam_type === 'Both';
@@ -74,7 +78,8 @@ export default function SpeakingPage() {
       });
   }, [user]);
 
-  const isPremiumUser = userPlan === 'pro' || userPlan === 'intensive';
+  const isPremiumUser = userPlan === 'pro';
+  const dailyLimit = useDailyLimit(user?.id, userPlan);
 
   // Load static speaking questions (for free users or fallback)
   useEffect(() => {
@@ -268,7 +273,13 @@ export default function SpeakingPage() {
 
         {tabMap.map(([type]) => (
           <TabsContent key={type} value={type} className="mt-4">
-            {activeTab !== type ? null : isLoadingQuestion ? (
+            {activeTab !== type ? null : !isPremiumUser && dailyLimit.isLimitReached ? (
+              <Card className="shadow-sm"><CardContent className="p-8 text-center space-y-3">
+                <Lock className="w-8 h-8 mx-auto text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">You've used all {dailyLimit.limit} free questions for today. Upgrade to Pro for unlimited practice.</p>
+                <Button variant="outline" onClick={() => navigate('/pricing')}>View Plans</Button>
+              </CardContent></Card>
+            ) : isLoadingQuestion ? (
               <QuestionSkeleton />
             ) : !question && !isPremiumUser && (questionsByType[type] || []).length === 0 ? (
               <Card className="shadow-sm"><CardContent className="p-8 text-center text-muted-foreground">{t(i18n.noQuestions, lang)}</CardContent></Card>
@@ -339,7 +350,7 @@ export default function SpeakingPage() {
                     onStopRecording={handleStopRecording}
                   />
                 ) : recorder.scoreResult ? (
-                  <ScoreDisplay result={recorder.scoreResult} onNext={nextQuestion} />
+              <ScoreDisplay result={recorder.scoreResult} onNext={() => { dailyLimit.increment(); nextQuestion(); }} isPro={isPremiumUser} />
                 ) : null}
               </div>
             ) : null}

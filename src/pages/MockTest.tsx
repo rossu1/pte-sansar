@@ -12,7 +12,7 @@ import {
   Clock, BookOpen, Mic, PenLine, Headphones, Eye,
   ChevronRight, Trophy, TrendingUp, TrendingDown, Minus,
   Loader2, ArrowRight, CheckCircle, Volume2, Square,
-  RotateCcw, Play,
+  RotateCcw, Play, Lock,
 } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import { toast } from 'sonner';
@@ -119,6 +119,8 @@ export default function MockTestPage() {
   const [prevScore, setPrevScore] = useState<number | null>(null);
 
   const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const [userPlan, setUserPlan] = useState('free');
+  const [monthlyMockCount, setMonthlyMockCount] = useState(0);
 
   // Session persistence
   const sessionIdRef = useRef<string | null>(null);
@@ -138,6 +140,19 @@ export default function MockTestPage() {
   /* ─── Check for existing session on mount ─── */
   useEffect(() => {
     if (!user) { setStep('select'); return; }
+
+    // Fetch plan & monthly mock count in parallel
+    supabase.from('subscriptions').select('plan').eq('user_id', user.id).eq('status', 'active').single()
+      .then(({ data }) => { if (data) setUserPlan(data.plan); });
+
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    supabase.from('mock_tests').select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('completed_at', monthStart.toISOString())
+      .then(({ count }) => { setMonthlyMockCount(count ?? 0); });
+
     const checkSession = async () => {
       const { data } = await supabase
         .from('mock_test_sessions' as any)
@@ -707,10 +722,22 @@ export default function MockTestPage() {
           </CardContent>
         </Card>
 
-        <Button onClick={startTest} disabled={loading} className="w-full gap-2 animate-fade-up" style={{ animationDelay: '180ms' }}>
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
-          {loading ? t(i18n.loading, lang) : t(i18n.start, lang)}
-        </Button>
+        {userPlan !== 'pro' && monthlyMockCount >= 1 ? (
+          <Card className="shadow-sm animate-fade-up" style={{ animationDelay: '180ms' }}>
+            <CardContent className="p-6 text-center space-y-3">
+              <Lock className="w-8 h-8 mx-auto text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                You've used your 1 free mock test this month. Upgrade to Pro for unlimited mock tests.
+              </p>
+              <Button variant="outline" onClick={() => navigate('/pricing')}>View Plans</Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Button onClick={startTest} disabled={loading} className="w-full gap-2 animate-fade-up" style={{ animationDelay: '180ms' }}>
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
+            {loading ? t(i18n.loading, lang) : t(i18n.start, lang)}
+          </Button>
+        )}
       </div>
     );
   }

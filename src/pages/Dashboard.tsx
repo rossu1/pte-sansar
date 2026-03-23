@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth, Profile } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Mic, PenTool, BookOpen, Headphones, Trophy, Flame, Zap, CalendarDays, Info, ArrowRight } from 'lucide-react';
+import { Mic, PenTool, BookOpen, Headphones, Trophy, Flame, CalendarDays, Info, ArrowRight } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { LineChart, Line, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { useLang, t } from '@/lib/i18n';
@@ -17,7 +17,7 @@ const i18n = {
   practice: { en: 'Practice', np: 'अभ्यास' },
   recentScores: { en: 'Recent Mock Test Scores', np: 'हालैको मक परीक्षा स्कोर' },
   streak: { en: 'Day Streak', np: 'दिन स्ट्रीक' },
-  xp: { en: 'XP Points', np: 'XP अंक' },
+  
   quote: { en: 'Hard work never fails', np: '"मेहनत कहिल्यै बेकार जाँदैन" — सफलता तपाईंको हातमा छ! 💪' },
   noScores: { en: 'Take a mock test to see your scores here', np: 'स्कोर हेर्न मक टेस्ट दिनुहोस्' },
   readiness: { en: 'Readiness Score', np: 'तयारी स्कोर' },
@@ -79,30 +79,6 @@ function ReadinessGauge({ score }: { score: number }) {
   );
 }
 
-/* ── XP Counter ── */
-function AnimatedNumber({ value }: { value: number }) {
-  const [display, setDisplay] = useState(0);
-  const prevRef = useRef(0);
-
-  useEffect(() => {
-    const start = prevRef.current;
-    const diff = value - start;
-    if (diff === 0) return;
-    const duration = 800;
-    const startTime = performance.now();
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(start + diff * eased));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-    prevRef.current = value;
-  }, [value]);
-
-  return <>{display}</>;
-}
 
 /* ── Mini Sparkline ── */
 function Sparkline({ data }: { data: number[] }) {
@@ -214,18 +190,12 @@ export default function Dashboard() {
                   <span className="text-sm text-muted-foreground">{t(i18n.days, lang)}</span>
                 </div>
               )}
-              {/* Streak & XP inline */}
+              {/* Streak inline */}
               <div className="flex items-center gap-4 justify-center sm:justify-start">
                 <div className="flex items-center gap-1.5">
                   <Flame className="w-4 h-4 text-accent" />
                   <span className="font-bold tabular-nums">{profile?.streak_count || 0}</span>
                   <span className="text-xs text-muted-foreground">{t(i18n.streak, lang)}</span>
-                </div>
-                <div className="w-px h-4 bg-border" />
-                <div className="flex items-center gap-1.5">
-                  <Zap className="w-4 h-4 text-primary" />
-                  <span className="font-bold tabular-nums"><AnimatedNumber value={profile?.xp_points || 0} /></span>
-                  <span className="text-xs text-muted-foreground">{t(i18n.xp, lang)}</span>
                 </div>
               </div>
             </div>

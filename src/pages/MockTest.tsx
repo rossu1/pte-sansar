@@ -593,7 +593,7 @@ export default function MockTestPage() {
         listening_score: listeningAvg,
       });
 
-      await supabase.rpc('update_streak_and_xp', { p_user_id: user.id, p_xp_gained: 50 });
+      await supabase.rpc('update_streak_and_xp', { p_user_id: user.id });
 
       setFinalScores({ overall: overallAvg, speaking: speakingAvg, writing: writingAvg, reading: readingAvg, listening: listeningAvg });
       setStep('results');
@@ -778,10 +778,6 @@ export default function MockTestPage() {
               })}
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <CheckCircle className="w-3.5 h-3.5 text-primary" />
-              +50 XP earned
-            </div>
 
             <Button onClick={() => navigate('/')} className="w-full gap-2">
               {t(i18n.backDash, lang)} <ArrowRight className="w-4 h-4" />

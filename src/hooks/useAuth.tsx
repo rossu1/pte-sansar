@@ -23,7 +23,7 @@ export interface Profile {
   level: string | null;
   streak_count: number;
   last_active_date: string | null;
-  xp_points: number;
+  
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

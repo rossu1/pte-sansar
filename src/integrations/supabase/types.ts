@@ -127,6 +127,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          city: string | null
           created_at: string
           exam_date: string | null
           exam_type: string | null
@@ -141,6 +142,7 @@ export type Database = {
           xp_points: number
         }
         Insert: {
+          city?: string | null
           created_at?: string
           exam_date?: string | null
           exam_type?: string | null
@@ -155,6 +157,7 @@ export type Database = {
           xp_points?: number
         }
         Update: {
+          city?: string | null
           created_at?: string
           exam_date?: string | null
           exam_type?: string | null

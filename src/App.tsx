@@ -16,6 +16,7 @@ import ListeningPage from "@/pages/Listening";
 import PricingPage from "@/pages/Pricing";
 import MockTestPage from "@/pages/MockTest";
 import ProgressPage from "@/pages/Progress";
+import ProfileSettingsPage from "@/pages/ProfileSettings";
 import PrivacyPage from "@/pages/Privacy";
 import TermsPage from "@/pages/Terms";
 import NotFound from "@/pages/NotFound";
@@ -72,6 +73,7 @@ const App = () => (
             <Route path="/practice/listening" element={<ProtectedRoute><ErrorBoundary><ListeningPage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/mock-test" element={<ProtectedRoute><ErrorBoundary><MockTestPage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/progress" element={<ProtectedRoute><ErrorBoundary><ProgressPage /></ErrorBoundary></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ErrorBoundary><ProfileSettingsPage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/pricing" element={<ProtectedRoute><ErrorBoundary><PricingPage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/privacy" element={<ProtectedRoute><ErrorBoundary><PrivacyPage /></ErrorBoundary></ProtectedRoute>} />
             <Route path="/terms" element={<ProtectedRoute><ErrorBoundary><TermsPage /></ErrorBoundary></ProtectedRoute>} />

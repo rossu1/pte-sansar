@@ -5,7 +5,7 @@ import { useLang } from '@/lib/i18n';
 import {
   LayoutDashboard, Mic, PenTool, BookOpen, Headphones,
   ClipboardList, BarChart3, CreditCard, LogOut, BookOpenCheck, Globe,
-  ArrowLeft, LayoutGrid, Timer, User, Sun, Moon,
+  ArrowLeft, LayoutGrid, Timer, User, Sun, Moon, Settings,
 } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ const sidebarItems = [
   { title: 'Mock Test', path: '/mock-test', icon: ClipboardList },
   { title: 'Progress', path: '/progress', icon: BarChart3 },
   { title: 'Pricing', path: '/pricing', icon: CreditCard },
+  { title: 'Profile', path: '/profile', icon: Settings },
 ];
 
 const bottomTabs = [
@@ -28,7 +29,7 @@ const bottomTabs = [
   { title: 'Practice', path: '/practice/speaking', icon: LayoutGrid, matchPaths: ['/practice/speaking', '/practice/writing', '/practice/reading', '/practice/listening'] },
   { title: 'Mock', path: '/mock-test', icon: Timer },
   { title: 'Progress', path: '/progress', icon: BarChart3 },
-  { title: 'Profile', path: '/pricing', icon: User },
+  { title: 'Profile', path: '/profile', icon: User },
 ];
 
 function ThemeToggle({ theme, onToggle }: { theme: string; onToggle: () => void }) {

@@ -12,6 +12,22 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+function PteSansarLogo({ size = 32 }: { size?: number }) {
+  const half = size / 2;
+  const rOuter = size * 0.375;
+  const rMid = size * 0.25;
+  const rInner = size * 0.125;
+  const rx = size * 0.1875;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none" className="shrink-0">
+      <rect width={size} height={size} rx={rx} fill="#1A5C38" />
+      <circle cx={half} cy={half} r={rOuter} stroke="white" strokeOpacity="0.25" strokeWidth="1.5" fill="none" />
+      <circle cx={half} cy={half} r={rMid} stroke="white" strokeOpacity="0.45" strokeWidth="1.5" fill="none" />
+      <circle cx={half} cy={half} r={rInner} fill="white" />
+    </svg>
+  );
+}
+
 const sidebarItems = [
   { title: 'Dashboard', path: '/', icon: LayoutDashboard },
   { title: 'Speaking', path: '/practice/speaking', icon: Mic },
@@ -68,10 +84,8 @@ function DesktopSidebar() {
     <div className="hidden md:flex flex-col h-screen w-16 hover:w-56 transition-[width] duration-300 ease-out bg-sidebar border-r border-sidebar-border group/sidebar overflow-hidden shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-14 shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0">
-          <BookOpenCheck className="w-4 h-4 text-sidebar-primary-foreground" />
-        </div>
-        <span className="font-heading font-bold text-sidebar-foreground text-lg whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">
+        <PteSansarLogo />
+        <span className="font-heading font-medium text-sidebar-foreground text-lg whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">
           PTE Sansar
         </span>
       </div>
@@ -186,10 +200,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           )}
           <div className="flex items-center gap-2 ml-auto">
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <BookOpenCheck className="w-3.5 h-3.5 text-primary-foreground" />
-            </div>
-            <span className="font-heading font-bold text-sm">PTE Sansar</span>
+            <PteSansarLogo size={28} />
+            <span className="font-heading font-medium text-sm">PTE Sansar</span>
           </div>
         </header>
 

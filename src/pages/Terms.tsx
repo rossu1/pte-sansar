@@ -9,7 +9,7 @@ export default function Terms() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">1. Introduction</h2>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          These Terms of Service ("Terms") govern your use of PTE Sathi, operated by <strong className="text-foreground">Udan Technologies Pvt. Ltd.</strong>, a company registered in Nepal. By using our service you agree to these Terms.
+          These Terms of Service ("Terms") govern your use of PTE Sansar, operated by <strong className="text-foreground">Udan Technologies Pvt. Ltd.</strong>, a company registered in Nepal. By using our service you agree to these Terms.
         </p>
       </section>
 

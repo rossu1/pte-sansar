@@ -68,10 +68,8 @@ function DesktopSidebar() {
     <div className="hidden md:flex flex-col h-screen w-16 hover:w-56 transition-[width] duration-300 ease-out bg-sidebar border-r border-sidebar-border group/sidebar overflow-hidden shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-14 shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0">
-          <BookOpenCheck className="w-4 h-4 text-sidebar-primary-foreground" />
-        </div>
-        <span className="font-heading font-bold text-sidebar-foreground text-lg whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">
+        <PteSansarLogo />
+        <span className="font-heading font-medium text-sidebar-foreground text-lg whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200">
           PTE Sansar
         </span>
       </div>

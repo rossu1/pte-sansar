@@ -67,7 +67,9 @@ export default function WritingPage() {
       .then(({ data }) => { if (data) setUserPlan(data.plan); });
   }, [user]);
 
-  const isPremium = userPlan === 'pro' || userPlan === 'intensive';
+  const isPremium = userPlan === 'pro';
+  const dailyLimit = useDailyLimit(user?.id, userPlan);
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.from('questions').select('id, question_text, question_type, difficulty, image_url')

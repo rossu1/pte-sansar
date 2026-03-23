@@ -72,28 +72,41 @@ function ProgressBar({ label, value, max = 30, delay = 0 }: { label: string; val
   );
 }
 
-export default function ScoreDisplay({ result, onNext }: Props) {
+export default function ScoreDisplay({ result, onNext, isPro = false }: Props) {
   const { lang } = useLang();
 
   return (
     <div className="space-y-4 animate-fade-up">
       <Card className="shadow-sm border-green-500/20">
         <CardContent className="p-5">
-          <div className="flex items-center gap-5 mb-5">
-            <ScoreArc score={result.overall_score} />
-            <div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
-                <span className="font-heading font-bold">{t(i18n.score, lang)}</span>
+          {isPro ? (
+            <>
+              <div className="flex items-center gap-5 mb-5">
+                <ScoreArc score={result.overall_score} />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    <span className="font-heading font-bold">{t(i18n.score, lang)}</span>
+                  </div>
+                </div>
               </div>
+              <div className="space-y-3">
+                <ProgressBar label="Content" value={result.content_score} delay={0} />
+                <ProgressBar label="Fluency" value={result.fluency_score} delay={0.1} />
+                <ProgressBar label="Pronunciation" value={result.pronunciation_score} delay={0.2} />
+              </div>
+            </>
+          ) : (
+            <div className="text-center space-y-3 py-2">
+              <div className="flex items-center justify-center gap-2">
+                <Lock className="w-5 h-5 text-muted-foreground" />
+                <span className="font-heading font-bold text-muted-foreground">{t(i18n.score, lang)}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Upgrade to Pro to see your detailed speaking scores and sub-scores.
+              </p>
             </div>
-          </div>
-
-          <div className="space-y-3">
-            <ProgressBar label="Content" value={result.content_score} delay={0} />
-            <ProgressBar label="Fluency" value={result.fluency_score} delay={0.1} />
-            <ProgressBar label="Pronunciation" value={result.pronunciation_score} delay={0.2} />
-          </div>
+          )}
         </CardContent>
       </Card>
 

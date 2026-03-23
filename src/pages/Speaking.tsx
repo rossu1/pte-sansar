@@ -174,6 +174,11 @@ export default function SpeakingPage() {
   }, [recorder.phase]);
 
   const handleStartRecording = useCallback(async () => {
+    if (!hasConsent) {
+      clearInterval(prepTimerRef.current);
+      setShowConsent(true);
+      return;
+    }
     clearInterval(prepTimerRef.current);
     const rec = await recorder.startRecording();
     if (rec && question && user) {
@@ -188,7 +193,7 @@ export default function SpeakingPage() {
         });
       };
     }
-  }, [recorder.startRecording, question, user]);
+  }, [recorder.startRecording, question, user, hasConsent]);
 
   const handleStopRecording = useCallback(() => {
     clearInterval(recTimerRef.current);

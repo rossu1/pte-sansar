@@ -140,6 +140,19 @@ export default function MockTestPage() {
   /* ─── Check for existing session on mount ─── */
   useEffect(() => {
     if (!user) { setStep('select'); return; }
+
+    // Fetch plan & monthly mock count in parallel
+    supabase.from('subscriptions').select('plan').eq('user_id', user.id).eq('status', 'active').single()
+      .then(({ data }) => { if (data) setUserPlan(data.plan); });
+
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    supabase.from('mock_tests').select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('completed_at', monthStart.toISOString())
+      .then(({ count }) => { setMonthlyMockCount(count ?? 0); });
+
     const checkSession = async () => {
       const { data } = await supabase
         .from('mock_test_sessions' as any)

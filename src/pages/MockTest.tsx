@@ -722,10 +722,22 @@ export default function MockTestPage() {
           </CardContent>
         </Card>
 
-        <Button onClick={startTest} disabled={loading} className="w-full gap-2 animate-fade-up" style={{ animationDelay: '180ms' }}>
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
-          {loading ? t(i18n.loading, lang) : t(i18n.start, lang)}
-        </Button>
+        {userPlan !== 'pro' && monthlyMockCount >= 1 ? (
+          <Card className="shadow-sm animate-fade-up" style={{ animationDelay: '180ms' }}>
+            <CardContent className="p-6 text-center space-y-3">
+              <Lock className="w-8 h-8 mx-auto text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                You've used your 1 free mock test this month. Upgrade to Pro for unlimited mock tests.
+              </p>
+              <Button variant="outline" onClick={() => navigate('/pricing')}>View Plans</Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Button onClick={startTest} disabled={loading} className="w-full gap-2 animate-fade-up" style={{ animationDelay: '180ms' }}>
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
+            {loading ? t(i18n.loading, lang) : t(i18n.start, lang)}
+          </Button>
+        )}
       </div>
     );
   }

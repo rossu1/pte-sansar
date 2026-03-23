@@ -18,7 +18,7 @@ const getInitialLang = (): Lang => {
 export const useLang = create<LangStore>((set) => ({
   lang: getInitialLang(),
   setLang: (lang) => {
-    localStorage.setItem('pte-sathi-lang', lang);
+    localStorage.setItem('pte-sansar-lang', lang);
     set({ lang });
   },
   toggle: () => set((s) => {

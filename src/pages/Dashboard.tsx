@@ -17,7 +17,7 @@ const i18n = {
   practice: { en: 'Practice', np: 'अभ्यास' },
   recentScores: { en: 'Recent Mock Test Scores', np: 'हालैको मक परीक्षा स्कोर' },
   streak: { en: 'Day Streak', np: 'दिन स्ट्रीक' },
-  xp: { en: 'XP Points', np: 'XP अंक' },
+  
   quote: { en: 'Hard work never fails', np: '"मेहनत कहिल्यै बेकार जाँदैन" — सफलता तपाईंको हातमा छ! 💪' },
   noScores: { en: 'Take a mock test to see your scores here', np: 'स्कोर हेर्न मक टेस्ट दिनुहोस्' },
   readiness: { en: 'Readiness Score', np: 'तयारी स्कोर' },

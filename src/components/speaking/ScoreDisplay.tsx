@@ -14,6 +14,7 @@ const i18n = {
 interface Props {
   result: ScoreResult;
   onNext: () => void;
+  isPro?: boolean;
 }
 
 /* ── Animated circular score arc ── */

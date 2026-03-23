@@ -75,7 +75,9 @@ export default function ListeningPage() {
       .then(({ data }) => { if (data) setUserPlan(data.plan); });
   }, [user]);
 
-  const isPremium = userPlan === 'pro' || userPlan === 'intensive';
+  const isPremium = userPlan === 'pro';
+  const dailyLimit = useDailyLimit(user?.id, userPlan);
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.from('questions').select('id, question_text, question_type, difficulty, correct_answer, audio_url, image_url')

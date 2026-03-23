@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, SkipForward } from 'lucide-react';
+import { CheckCircle2, SkipForward, Lock } from 'lucide-react';
 import { useLang, t } from '@/lib/i18n';
 import type { ScoreResult } from './SpeakingRecorder';
 
